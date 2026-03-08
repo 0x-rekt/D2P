@@ -14,7 +14,7 @@ const SignInBtn = () => {
   return (
     <Button
       variant="outline"
-      className="bg-white text-black hover:bg-gray-200 cursor-pointer"
+      className="border-white/10 bg-white/5 text-white hover:bg-white/10 cursor-pointer"
       onClick={handleClick}
     >
       Sign in with GitHub

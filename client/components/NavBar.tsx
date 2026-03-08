@@ -14,23 +14,23 @@ const NavBar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/70 backdrop-blur-md dark:bg-black/70">
+    <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2">
           <Link
             href="/"
-            className="text-2xl font-bold tracking-tighter text-primary"
+            className="text-2xl font-bold tracking-tighter text-white"
           >
             D2P<span className="text-blue-500">.</span>
           </Link>
         </div>
 
         <div className="hidden md:block">
-          <div className="flex items-center gap-8 text-sm font-medium text-muted-foreground">
+          <div className="flex items-center gap-8 text-sm font-medium text-gray-400">
             {session && (
               <Link
                 href="/dashboard"
-                className="transition-colors hover:text-primary"
+                className="transition-colors hover:text-blue-400"
               >
                 Dashboard
               </Link>
@@ -40,7 +40,7 @@ const NavBar = () => {
 
         <div className="flex items-center gap-4">
           {isPending ? (
-            <div className="h-8 w-20 animate-pulse rounded-md bg-gray-200 dark:bg-gray-800" />
+            <div className="h-8 w-20 animate-pulse rounded-md bg-gray-700" />
           ) : session ? (
             <div className="flex items-center gap-4">
               <Image
@@ -53,7 +53,7 @@ const NavBar = () => {
               <Button
                 onClick={handleSignOut}
                 variant="destructive"
-                className="text-black hover:bg-gray-200 cursor-pointer"
+                className="cursor-pointer"
               >
                 Sign Out
               </Button>

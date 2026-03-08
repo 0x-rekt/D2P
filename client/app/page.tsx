@@ -1,9 +1,9 @@
-import SignInBtn from "@/components/SignInBtn";
+import Hero from "@/components/Hero";
 
 const Home = () => {
   return (
     <div>
-      <SignInBtn />
+      <Hero />
     </div>
   );
 };
