@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
+import SignInBtn from "@/components/SignInBtn";
 
 const Home = () => {
   return (
     <div>
-      <Button variant="outline">Hello world</Button>
+      <SignInBtn />
     </div>
   );
 };
