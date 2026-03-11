@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
 import axios from "axios";
+import { randomBytes } from "crypto";
 
 type GithubRepo = {
   id: number;
@@ -112,6 +113,17 @@ export const connectRepository = async (
   if (!user || !user.accessToken)
     return { success: false, error: "Unauthorized" };
 
+  const existing = await prisma.repository.findFirst({
+    where: {
+      repoGithubId: repoId,
+      userId: session.user.id,
+    },
+  });
+
+  if (existing) {
+    return { success: false, error: "Repository already connected" };
+  }
+
   try {
     const response = await axios.get(
       `https://api.github.com/repositories/${repoId}`,
@@ -130,7 +142,42 @@ export const connectRepository = async (
       return { success: false, error: "Failed to fetch repository details" };
     }
 
-    const repoData = response.data;
+    const repoData: GithubRepo = response.data;
+
+    const webhookSecret = randomBytes(32).toString("hex");
+    const webhookUrl = `${process.env.WEBHOOK_BASE_URL}/api/webhooks/github`;
+
+    let webhhookId: number | null = null;
+
+    try {
+      const [owner, repo] = repoData.full_name.split("/");
+
+      const { data: webhook } = await axios.post(
+        `https://api.github.com/repos/${owner}/${repo}/hooks`,
+        {
+          name: "web",
+          active: true,
+          events: ["pull_request"],
+          config: {
+            url: webhookUrl,
+            content_type: "json",
+            secret: webhookSecret,
+            insecure_ssl: "0",
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user.accessToken}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        },
+      );
+
+      webhhookId = webhook.id;
+    } catch (error) {
+      console.log("Failed to create webhook:", error);
+      return { success: false, error: "Failed to create webhook" };
+    }
 
     await prisma.repository.create({
       data: {
@@ -141,6 +188,8 @@ export const connectRepository = async (
         private: repoData.private,
         htmlUrl: repoData.html_url,
         userId: session.user.id,
+        webhookId: webhhookId,
+        webhookSecret,
       },
     });
 

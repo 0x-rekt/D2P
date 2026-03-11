@@ -75,7 +75,7 @@ model Verification {
 
 model Repository {
   id String @id @default(uuid())
-  repoGithubId String @unique
+  repoGithubId Int @unique
   fullName String
   name String
   private Boolean @default(false)
