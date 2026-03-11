@@ -19,6 +19,8 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
+  repositories Repository[]
+
   @@unique([email])
   @@map("user")
 }
@@ -69,4 +71,29 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model Repository {
+  id String @id @default(uuid())
+  repoGithubId String @unique
+  fullName String
+  name String
+  private Boolean @default(false)
+  defaultBranch String @default("main")
+  language String?
+  description String?
+  htmlUrl String
+
+  webhookId Int?
+  webhookSecret String?
+
+  connectedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([repoGithubId])
+  @@map("repository")
 }

@@ -24,6 +24,11 @@ type GetRepositoriesResponse = {
   count?: number;
 };
 
+type ConnectRepositoryResponse = {
+  success: boolean;
+  error?: string;
+};
+
 export const getRepositories = async (): Promise<GetRepositoriesResponse> => {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -82,5 +87,66 @@ export const getRepositories = async (): Promise<GetRepositoriesResponse> => {
   } catch (error) {
     console.log(error);
     return { success: false, error: "Failed to fetch repositories" };
+  }
+};
+
+export const connectRepository = async (
+  repoId: number,
+): Promise<ConnectRepositoryResponse> => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) return { success: false, error: "Unauthorized" };
+
+  const user = await prisma.account.findFirst({
+    where: {
+      userId: session.user.id,
+      providerId: "github",
+    },
+    select: {
+      accessToken: true,
+    },
+  });
+
+  if (!user || !user.accessToken)
+    return { success: false, error: "Unauthorized" };
+
+  try {
+    const response = await axios.get(
+      `https://api.github.com/repositories/${repoId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${user.accessToken}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    );
+
+    if (!response.data) {
+      if (response.status === 401) {
+        return { success: false, error: "Unauthorized" };
+      }
+      return { success: false, error: "Failed to fetch repository details" };
+    }
+
+    const repoData = response.data;
+
+    await prisma.repository.create({
+      data: {
+        repoGithubId: repoData.id,
+        name: repoData.name,
+        fullName: repoData.full_name,
+        description: repoData.description,
+        private: repoData.private,
+        htmlUrl: repoData.html_url,
+        userId: session.user.id,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.log(error);
+    return { success: false, error: "Failed to connect repository" };
   }
 };
