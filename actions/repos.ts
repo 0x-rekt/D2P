@@ -18,9 +18,13 @@ type GithubRepo = {
   default_branch: string;
 };
 
+type RepositoryWithConnection = GithubRepo & {
+  isConnected: boolean;
+};
+
 type GetRepositoriesResponse = {
   success: boolean;
-  repositories?: GithubRepo[];
+  repositories?: RepositoryWithConnection[];
   error?: string;
   count?: number;
 };
@@ -80,10 +84,29 @@ export const getRepositories = async (): Promise<GetRepositoriesResponse> => {
       default_branch: repo.default_branch,
     }));
 
+    const connectedRepos = await prisma.repository.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      select: {
+        repoGithubId: true,
+      },
+    });
+
+    const connectedRepoIds = new Set(
+      connectedRepos.map((repo) => repo.repoGithubId),
+    );
+
+    const repositoriesWithStatus: RepositoryWithConnection[] =
+      filteredRepos.map((repo) => ({
+        ...repo,
+        isConnected: connectedRepoIds.has(repo.id),
+      }));
+
     return {
       success: true,
-      repositories: filteredRepos,
-      count: filteredRepos.length,
+      repositories: repositoriesWithStatus,
+      count: repositoriesWithStatus.length,
     };
   } catch (error) {
     console.log(error);
@@ -143,6 +166,23 @@ export const connectRepository = async (
     }
 
     const repoData: GithubRepo = response.data;
+    const [owner, repo] = repoData.full_name.split("/");
+
+    const check = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}`,
+      {
+        headers: {
+          Authorization: `Bearer ${user.accessToken}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    );
+    console.log(
+      "[webhook debug] x-oauth-scopes:",
+      check.headers["x-oauth-scopes"],
+    );
+    console.log("[webhook debug] repo permissions:", check.data.permissions);
+    console.log("[webhook debug] owner:", owner, "repo:", repo);
 
     const webhookSecret = randomBytes(32).toString("hex");
     const webhookUrl = `${process.env.WEBHOOK_BASE_URL}/api/webhooks/github`;
@@ -150,7 +190,7 @@ export const connectRepository = async (
     let webhhookId: number | null = null;
 
     try {
-      const [owner, repo] = repoData.full_name.split("/");
+      console.log("owner:", owner, "repo:", repo);
 
       const { data: webhook } = await axios.post(
         `https://api.github.com/repos/${owner}/${repo}/hooks`,
@@ -197,5 +237,44 @@ export const connectRepository = async (
   } catch (error) {
     console.log(error);
     return { success: false, error: "Failed to connect repository" };
+  }
+};
+
+type CheckRepositoryConnectionResponse = {
+  success: boolean;
+  isConnected: boolean;
+  error?: string;
+};
+
+export const checkRepositoryConnection = async (
+  repoId: number,
+): Promise<CheckRepositoryConnectionResponse> => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    return { success: false, isConnected: false, error: "Unauthorized" };
+  }
+
+  try {
+    const repository = await prisma.repository.findFirst({
+      where: {
+        repoGithubId: repoId,
+        userId: session.user.id,
+      },
+    });
+
+    return {
+      success: true,
+      isConnected: !!repository,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      isConnected: false,
+      error: "Failed to check repository connection",
+    };
   }
 };

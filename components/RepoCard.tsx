@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GitBranch, Clock, ExternalLink } from "lucide-react";
+import ConnectButton from "./ConnectButton";
 
 type GithubRepo = {
   id: number;
@@ -16,6 +17,7 @@ type GithubRepo = {
 
 interface RepoCardProps {
   repo: GithubRepo;
+  isConnected: boolean;
 }
 
 const getLanguageColor = (language: string | null) => {
@@ -33,7 +35,7 @@ const getLanguageColor = (language: string | null) => {
   return colors[language || ""] || "bg-gray-400";
 };
 
-export const RepoCard = ({ repo }: RepoCardProps) => {
+export const RepoCard = ({ repo, isConnected }: RepoCardProps) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -88,12 +90,7 @@ export const RepoCard = ({ repo }: RepoCardProps) => {
       </div>
 
       <div className="flex items-center gap-3">
-        <Button
-          size="sm"
-          className="flex-1 bg-blue-600 font-semibold hover:bg-blue-700"
-        >
-          Connect
-        </Button>
+        <ConnectButton repoId={repo.id} initialConnected={isConnected} />
         <Button
           size="sm"
           variant="outline"

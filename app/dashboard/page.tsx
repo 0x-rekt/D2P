@@ -66,7 +66,11 @@ const Dashboard = async () => {
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {repositories.map((repo) => (
-            <RepoCard key={repo.id} repo={repo} />
+            <RepoCard
+              key={repo.id}
+              repo={repo}
+              isConnected={repo.isConnected}
+            />
           ))}
         </div>
       </div>
