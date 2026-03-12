@@ -56,7 +56,7 @@ export const getRepositories = async (): Promise<GetRepositoriesResponse> => {
 
   try {
     const response = await axios.get<any[]>(
-      "https://api.github.com/user/repos",
+      "https://api.github.com/user/repos?sort=updated&direction=desc&per_page=100",
       {
         headers: {
           Authorization: `Bearer ${user.accessToken}`,
@@ -167,22 +167,6 @@ export const connectRepository = async (
 
     const repoData: GithubRepo = response.data;
     const [owner, repo] = repoData.full_name.split("/");
-
-    const check = await axios.get(
-      `https://api.github.com/repos/${owner}/${repo}`,
-      {
-        headers: {
-          Authorization: `Bearer ${user.accessToken}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-      },
-    );
-    console.log(
-      "[webhook debug] x-oauth-scopes:",
-      check.headers["x-oauth-scopes"],
-    );
-    console.log("[webhook debug] repo permissions:", check.data.permissions);
-    console.log("[webhook debug] owner:", owner, "repo:", repo);
 
     const webhookSecret = randomBytes(32).toString("hex");
     const webhookUrl = `${process.env.WEBHOOK_BASE_URL}/api/webhooks/github`;

@@ -93,7 +93,63 @@ model Repository {
   userId String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  pullRequests PullRequest[]
+
   @@index([userId])
   @@index([repoGithubId])
   @@map("repository")
+}
+
+model PullRequest {
+  id String @id @default(uuid())
+  prNumber Int
+  prGithubId Int @unique
+  title String
+  body String?
+  state String @default("open")
+  headSha String
+  baseBranch String
+  headBranch String
+  authorLogin String
+  diffUrl String
+  prUrl String
+
+  reviewStatus String @default("pending")
+  reviewedAt DateTime?
+
+  repositoryId String
+  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  suggestions Suggestion[]
+
+  @@unique([repositoryId, prNumber])
+  @@index([repositoryId])
+  @@index([reviewStatus])
+  @@map("pull_request")
+}
+
+model Suggestion {
+  id String @id @default(uuid())
+  filePath String
+  startLine Int
+  endLine Int
+  type String
+  severity String
+  comment String
+  originalCode String
+  suggestedCode String
+  status String @default("pending")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pullRequestId String
+  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+
+  @@index([pullRequestId])
+  @@index([status])
+  @@map("suggestion")
 }
