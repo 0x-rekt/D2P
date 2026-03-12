@@ -103,7 +103,7 @@ model Repository {
 model PullRequest {
   id String @id @default(uuid())
   prNumber Int
-  prGithubId Int @unique
+  prGithubId BigInt @unique
   title String
   body String?
   state String @default("open")
