@@ -39,8 +39,7 @@ const reviewStatusConfig = {
     class: "border-red-500/30 bg-red-500/10 text-red-400",
   },
 };
-
-export default async function RepoPage({ params }: PageProps) {
+const RepoPage = async ({ params }: PageProps) => {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) redirect("/");
 
@@ -66,7 +65,7 @@ export default async function RepoPage({ params }: PageProps) {
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-black py-16">
-      <div className="absolute left-1/2 top-0 -z-10 h-96 w-[600px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
+      <div className="absolute left-1/2 top-0 -z-10 h-96 w-150 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
 
       <div className="container mx-auto max-w-4xl px-6">
         {/* Header */}
@@ -121,7 +120,7 @@ export default async function RepoPage({ params }: PageProps) {
                 <Link
                   key={pr.id}
                   href={`/dashboard/repos/${repoId}/pulls/${pr.id}`}
-                  className="group flex items-center justify-between rounded-xl border border-white/10 bg-gradient-to-b from-gray-900/50 to-black/50 p-5 backdrop-blur-sm transition-all hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10"
+                  className="group flex items-center justify-between rounded-xl border border-white/10 bg-linear-to-b from-gray-900/50 to-black/50 p-5 backdrop-blur-sm transition-all hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10"
                 >
                   <div className="flex items-start gap-4">
                     <GitPullRequest
@@ -181,4 +180,6 @@ export default async function RepoPage({ params }: PageProps) {
       </div>
     </section>
   );
-}
+};
+
+export default RepoPage;
