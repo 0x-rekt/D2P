@@ -1,3 +1,4 @@
+import { analyzePullRequestWithAI } from "@/lib/ai-review";
 import prisma from "@/lib/prisma";
 import { createHmac, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
@@ -118,6 +119,13 @@ export const POST = async (req: NextRequest) => {
   });
 
   console.log(`[webhook] PullRequest row upserted: ${pullRequest.id}`);
+
+  analyzePullRequestWithAI(pullRequest.id, repo.userId).catch((error) => {
+    console.error(
+      `[webhook] Error analyzing PR #${pullRequest.prNumber} for repo ${repo.fullName}:`,
+      error,
+    );
+  });
 
   return NextResponse.json({ success: true, pullRequestId: pullRequest.id });
 };

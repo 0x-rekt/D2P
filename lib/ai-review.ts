@@ -20,16 +20,21 @@ type AISuggestion = {
 };
 
 const fetchDiff = async (
-  diffUrl: string,
   accessToken: string,
+  repoFullName: string,
+  prNumber: number,
 ): Promise<string> => {
-  const { data } = await axios.get<string>(diffUrl, {
-    headers: {
-      authorization: `token ${accessToken}`,
-      accept: "application/vnd.github.v3.diff",
+  const { data } = await axios.get<string>(
+    `https://api.github.com/repos/${repoFullName}/pulls/${prNumber}`,
+    {
+      headers: {
+        authorization: `token ${accessToken}`,
+        accept: "application/vnd.github.v3.diff",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      maxContentLength: 500000,
     },
-    maxContentLength: 500000,
-  });
+  );
 
   return data;
 };
@@ -140,7 +145,11 @@ export const analyzePullRequestWithAI = async (
     console.log(
       `[ai-review] Fetching diff for PR #${pr.prNumber} — ${pr.repository.fullName}`,
     );
-    const diff = await fetchDiff(pr.diffUrl, accessToken);
+    const diff = await fetchDiff(
+      accessToken,
+      pr.repository.fullName,
+      pr.prNumber,
+    );
 
     if (!diff || diff.trim().length === 0) {
       console.log(`[ai-review] Empty diff, skipping`);
