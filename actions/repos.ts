@@ -20,6 +20,7 @@ type GithubRepo = {
 
 type RepositoryWithConnection = GithubRepo & {
   isConnected: boolean;
+  connectedRepoId: string | null;
 };
 
 type GetRepositoriesResponse = {
@@ -89,18 +90,20 @@ export const getRepositories = async (): Promise<GetRepositoriesResponse> => {
         userId: session.user.id,
       },
       select: {
+        id: true,
         repoGithubId: true,
       },
     });
 
-    const connectedRepoIds = new Set(
-      connectedRepos.map((repo) => repo.repoGithubId),
+    const connectedRepoIds = new Map(
+      connectedRepos.map((repo) => [repo.repoGithubId, repo.id]),
     );
 
     const repositoriesWithStatus: RepositoryWithConnection[] =
       filteredRepos.map((repo) => ({
         ...repo,
         isConnected: connectedRepoIds.has(repo.id),
+        connectedRepoId: connectedRepoIds.get(repo.id) ?? null,
       }));
 
     return {

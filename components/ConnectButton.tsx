@@ -4,6 +4,7 @@ import { connectRepository } from "@/actions/repos";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2, Unplug, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface ConnectButtonProps {
   repoId: number;
@@ -14,13 +15,16 @@ const ConnectButton = ({ repoId, initialConnected }: ConnectButtonProps) => {
   const [connected, setConnected] = useState(initialConnected);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleConnect = async () => {
     setError(null);
     startTransition(async () => {
       const result = await connectRepository(repoId);
-      if (result.success) setConnected(true);
-      else setError(result.error || "Failed to connect repository");
+      if (result.success) {
+        setConnected(true);
+        router.refresh();
+      } else setError(result.error || "Failed to connect repository");
     });
   };
 

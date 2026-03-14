@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GitBranch, Clock, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import ConnectButton from "./ConnectButton";
 
 type GithubRepo = {
@@ -13,6 +14,7 @@ type GithubRepo = {
   language: string | null;
   updated_at: string;
   default_branch: string;
+  connectedRepoId: string | null;
 };
 
 interface RepoCardProps {
@@ -91,6 +93,18 @@ export const RepoCard = ({ repo, isConnected }: RepoCardProps) => {
 
       <div className="flex items-center gap-3">
         <ConnectButton repoId={repo.id} initialConnected={isConnected} />
+        {isConnected && repo.connectedRepoId && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
+            asChild
+          >
+            <Link href={`/dashboard/repos/${repo.connectedRepoId}`}>
+              Open dashboard
+            </Link>
+          </Button>
+        )}
         <Button
           size="sm"
           variant="outline"

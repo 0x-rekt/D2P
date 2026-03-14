@@ -123,7 +123,7 @@ export const analyzePullRequestWithAI = async (
 ): Promise<void> => {
   await prisma.pullRequest.update({
     where: { id: pullRequestId },
-    data: { reviewStatus: "processing" },
+    data: { reviewStatus: "reviewing" },
   });
 
   try {
