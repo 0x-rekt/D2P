@@ -49,7 +49,7 @@ const ConnectButton = ({ repoId, initialConnected }: ConnectButtonProps) => {
               onClick={handleDisconnect}
               disabled={isPending}
               title="Disconnect"
-              className="h-8 border border-white/10 px-2.5 text-gray-500 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
+              className="h-8 border hover:cursor-pointer border-white/10 px-2.5 text-gray-500 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
             >
               {isPending ? (
                 <Loader2 size={13} className="animate-spin" />
@@ -63,7 +63,7 @@ const ConnectButton = ({ repoId, initialConnected }: ConnectButtonProps) => {
             size="sm"
             onClick={handleConnect}
             disabled={isPending}
-            className="flex-1 bg-blue-600 font-semibold hover:bg-blue-700 disabled:opacity-60"
+            className="flex-1 bg-blue-600 font-semibold hover:bg-blue-700 disabled:opacity-60 hover:cursor-pointer disabled:hover:bg-blue-600 disabled:hover:text-white"
           >
             {isPending ? (
               <>

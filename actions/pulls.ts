@@ -1,6 +1,13 @@
+"use server";
+
 import { auth } from "@/lib/auth";
+import { applyAndCreatePR } from "@/lib/gh-apply";
 import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
+
+type ApplySuggestionResult =
+  | { success: true; prUrl: string; prNumber: number }
+  | { success: false; error: string };
 
 export const getPullRequests = async (repositoryId: string) => {
   const session = await auth.api.getSession({
@@ -63,4 +70,100 @@ export const getPullRequestWithSuggestions = async (pullId: string) => {
     return { success: false, error: "Pull request not found", pull: null };
 
   return { success: true, pull };
+};
+
+export const updateSuggestionStatus = async (
+  suggestionId: string,
+  status: "accepted" | "rejected",
+) => {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) return { success: false, error: "Unauthorized" };
+
+  const suggestion = await prisma.suggestion.findFirst({
+    where: {
+      id: suggestionId,
+      pullRequest: { repository: { userId: session.user.id } },
+    },
+  });
+
+  if (!suggestion) return { success: false, error: "Suggestion not found" };
+
+  await prisma.suggestion.update({
+    where: { id: suggestionId },
+    data: { status },
+  });
+
+  return { success: true };
+};
+
+export const applyAcceptedSuggestions = async (
+  pullRequestId: string,
+): Promise<ApplySuggestionResult> => {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) return { success: false, error: "Unauthorized" };
+
+  const pr = await prisma.pullRequest.findFirst({
+    where: {
+      id: pullRequestId,
+      repository: { userId: session.user.id },
+    },
+    include: {
+      repository: true,
+      suggestions: {
+        where: { status: "accepted" },
+      },
+    },
+  });
+
+  if (!pr) return { success: false, error: "Pull request not found" };
+
+  if (pr.suggestions.length === 0) {
+    return { success: false, error: "No accepted suggestions to apply." };
+  }
+
+  const account = await prisma.account.findFirst({
+    where: { userId: session.user.id, providerId: "github" },
+    select: { accessToken: true },
+  });
+
+  if (!account?.accessToken) {
+    return {
+      success: false,
+      error: "GitHub token not found. Please re-authenticate.",
+    };
+  }
+
+  const result = await applyAndCreatePR(
+    pr.repository.fullName,
+    pr.baseBranch,
+    pr.prNumber,
+    pr.suggestions.map((s) => ({
+      filePath: s.filePath,
+      originalCode: s.originalCode,
+      suggestedCode: s.suggestedCode,
+    })),
+    account.accessToken,
+  );
+
+  if (!result.success) return result;
+
+  try {
+    await prisma.pullRequest.update({
+      where: { id: pullRequestId },
+      data: { appliedPrUrl: result.prUrl },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+
+    if (!message.includes("Unknown argument `appliedPrUrl`")) {
+      throw error;
+    }
+
+    console.warn(
+      "Skipping appliedPrUrl persistence because generated Prisma client is stale.",
+      { pullRequestId },
+    );
+  }
+
+  return { success: true, prUrl: result.prUrl, prNumber: result.prNumber };
 };

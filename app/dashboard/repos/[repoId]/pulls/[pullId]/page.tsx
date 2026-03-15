@@ -43,7 +43,7 @@ export default async function PullRequestPage({ params }: PageProps) {
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-black py-16">
-      <div className="absolute left-1/2 top-0 -z-10 h-96 w-150 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
+      <div className="absolute left-1/2 top-0 -z-10 h-96 w-[600px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
 
       <div className="container mx-auto max-w-7xl px-6">
         {/* Breadcrumb */}
@@ -62,8 +62,8 @@ export default async function PullRequestPage({ params }: PageProps) {
           <span className="text-gray-300">PR #{pull.prNumber}</span>
         </div>
 
-        {/* PR Header */}
-        <div className="mb-8 rounded-xl border border-white/10 bg-linear-to-b from-gray-900/50 to-black/50 p-6 backdrop-blur-sm">
+        {/* PR header */}
+        <div className="mb-8 rounded-xl border border-white/10 bg-gradient-to-b from-gray-900/50 to-black/50 p-6 backdrop-blur-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <GitPullRequest
@@ -103,20 +103,18 @@ export default async function PullRequestPage({ params }: PageProps) {
                 )}
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <a
-                href={pull.prUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-400 hover:bg-white/10 hover:text-white"
-              >
-                View on GitHub ↗
-              </a>
-            </div>
+            <a
+              href={pull.prUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-400 hover:bg-white/10 hover:text-white"
+            >
+              View on GitHub ↗
+            </a>
           </div>
         </div>
 
-        {/* Review status / suggestions */}
+        {/* Suggestions or status */}
         {isReviewing ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/5 py-20 text-center">
             <Loader2 className="mb-4 animate-spin text-blue-400" size={36} />
@@ -124,7 +122,7 @@ export default async function PullRequestPage({ params }: PageProps) {
               AI Review in Progress
             </h2>
             <p className="text-sm text-gray-500">
-              Claude Haiku is analyzing the diff. Refresh in a moment.
+              Gemini is analyzing the diff. Refresh in a moment.
             </p>
           </div>
         ) : pull.reviewStatus === "failed" ? (
@@ -145,11 +143,15 @@ export default async function PullRequestPage({ params }: PageProps) {
               No Suggestions
             </h2>
             <p className="text-sm text-gray-500">
-              Claude found no issues with this pull request. Looks good!
+              Gemini found no issues with this pull request. Looks good!
             </p>
           </div>
         ) : (
-          <SuggestionPanel suggestions={pull.suggestions} />
+          <SuggestionPanel
+            suggestions={pull.suggestions}
+            pullRequestId={pull.id}
+            initialPrUrl={(pull as any).appliedPrUrl ?? null}
+          />
         )}
       </div>
     </section>

@@ -83,6 +83,13 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json({ error: "Unsupported action" }, { status: 400 });
   }
 
+  if (pr.head.ref.startsWith("d2p/")) {
+    console.log(
+      `[webhook] Ignoring PR #${pr.number} from branch ${pr.head.ref} (starts with d2p/)`,
+    );
+    return NextResponse.json({ success: true, message: "PR ignored" });
+  }
+
   console.log(
     `[webhook] Received pull request event for repo ${repo.fullName} (ID: ${repo.id}) - Action: ${action}, PR #${pr.number}`,
   );
