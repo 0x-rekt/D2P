@@ -9,12 +9,23 @@ type ApplySuggestionResult =
   | { success: true; prUrl: string; prNumber: number }
   | { success: false; error: string };
 
-export const getPullRequests = async (repositoryId: string) => {
+export const getPullRequests = async (
+  repositoryId: string,
+  page: number = 1,
+  limit: number = 10,
+) => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session?.user)
-    return { success: false, error: "Unauthorized", pulls: [] };
+    return {
+      success: false,
+      error: "Unauthorized",
+      pulls: [],
+      total: 0,
+      page,
+      limit,
+    };
 
   const repo = await prisma.repository.findFirst({
     where: { id: repositoryId, userId: session.user.id },
@@ -22,7 +33,20 @@ export const getPullRequests = async (repositoryId: string) => {
   });
 
   if (!repo)
-    return { success: false, error: "Repository not found", pulls: [] };
+    return {
+      success: false,
+      error: "Repository not found",
+      pulls: [],
+      total: 0,
+      page,
+      limit,
+    };
+
+  const total = await prisma.pullRequest.count({
+    where: { repositoryId: repo.id },
+  });
+
+  const skip = (page - 1) * limit;
 
   const pulls = await prisma.pullRequest.findMany({
     where: { repositoryId: repo.id },
@@ -41,9 +65,11 @@ export const getPullRequests = async (repositoryId: string) => {
       reviewedAt: true,
       _count: { select: { suggestions: true } },
     },
+    skip,
+    take: limit,
   });
 
-  return { success: true, repo, pulls };
+  return { success: true, repo, pulls, total, page, limit };
 };
 
 export const getPullRequestWithSuggestions = async (pullId: string) => {

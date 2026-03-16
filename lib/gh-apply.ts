@@ -175,10 +175,6 @@ export async function applyAndCreatePR(
 
         appliedFiles.push(filePath);
       } catch (err: any) {
-        console.error(
-          `[github-apply] Failed to apply changes to ${filePath}:`,
-          err?.message,
-        );
         skippedFiles.push(filePath);
       }
     }
@@ -221,7 +217,6 @@ export async function applyAndCreatePR(
   } catch (err: any) {
     const message =
       err?.response?.data?.message ?? err?.message ?? "Unknown error";
-    console.error("[github-apply] Failed:", message);
     return { success: false, error: `GitHub API error: ${message}` };
   }
 }

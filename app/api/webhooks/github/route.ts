@@ -79,20 +79,31 @@ export const POST = async (req: NextRequest) => {
   const action: string = payload.action;
   const pr = payload.pull_request;
 
+  if (!pr) {
+    return NextResponse.json(
+      { error: "Missing pull request data in payload" },
+      { status: 400 },
+    );
+  }
+
+  if (action === "closed") {
+    const newState = pr.merged ? "merged" : "closed";
+
+    await prisma.pullRequest.updateMany({
+      where: { repositoryId: repo.id, prNumber: pr.number },
+      data: { state: newState },
+    });
+
+    return NextResponse.json({ success: true, message: "Pull request closed" });
+  }
+
   if (action !== "opened" && action !== "synchronize") {
     return NextResponse.json({ error: "Unsupported action" }, { status: 400 });
   }
 
   if (pr.head.ref.startsWith("d2p/")) {
-    console.log(
-      `[webhook] Ignoring PR #${pr.number} from branch ${pr.head.ref} (starts with d2p/)`,
-    );
     return NextResponse.json({ success: true, message: "PR ignored" });
   }
-
-  console.log(
-    `[webhook] Received pull request event for repo ${repo.fullName} (ID: ${repo.id}) - Action: ${action}, PR #${pr.number}`,
-  );
 
   const pullRequest = await prisma.pullRequest.upsert({
     where: {
@@ -125,14 +136,7 @@ export const POST = async (req: NextRequest) => {
     },
   });
 
-  console.log(`[webhook] PullRequest row upserted: ${pullRequest.id}`);
-
-  analyzePullRequestWithAI(pullRequest.id, repo.userId).catch((error) => {
-    console.error(
-      `[webhook] Error analyzing PR #${pullRequest.prNumber} for repo ${repo.fullName}:`,
-      error,
-    );
-  });
+  analyzePullRequestWithAI(pullRequest.id, repo.userId);
 
   return NextResponse.json({ success: true, pullRequestId: pullRequest.id });
 };

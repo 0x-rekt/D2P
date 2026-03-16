@@ -105,14 +105,9 @@ ${diff.slice(0, 100_000)}`;
     if (Array.isArray(parsed)) {
       return parsed as AISuggestion[];
     } else {
-      console.error("AI response is not an array:", parsed);
       return [];
     }
   } catch (err) {
-    console.error(
-      "[ai-review] Failed to parse Gemini response:",
-      cleaned.slice(0, 500),
-    );
     return [];
   }
 };
@@ -135,16 +130,12 @@ export const analyzePullRequestWithAI = async (
     });
 
     if (!pr) {
-      console.error("Pull request not found:", pullRequestId);
       return;
     }
 
     const accessToken = await getAccessToken(userId);
     if (!accessToken) throw new Error(`No GitHub token for user ${userId}`);
 
-    console.log(
-      `[ai-review] Fetching diff for PR #${pr.prNumber} — ${pr.repository.fullName}`,
-    );
     const diff = await fetchDiff(
       accessToken,
       pr.repository.fullName,
@@ -152,7 +143,6 @@ export const analyzePullRequestWithAI = async (
     );
 
     if (!diff || diff.trim().length === 0) {
-      console.log(`[ai-review] Empty diff, skipping`);
       await prisma.pullRequest.update({
         where: { id: pullRequestId },
         data: { reviewStatus: "reviewed", reviewedAt: new Date() },
@@ -160,15 +150,11 @@ export const analyzePullRequestWithAI = async (
       return;
     }
 
-    console.log(
-      `[ai-review] Sending diff to Gemini 2.5 Flash (${diff.length} chars)`,
-    );
     const suggestions = await reviewDiffWithAI(
       diff,
       pr.repository.fullName,
       pr.title,
     );
-    console.log(`[ai-review] Got ${suggestions.length} suggestions`);
 
     await prisma.suggestion.deleteMany({ where: { pullRequestId } });
 
@@ -193,10 +179,7 @@ export const analyzePullRequestWithAI = async (
       where: { id: pullRequestId },
       data: { reviewStatus: "reviewed", reviewedAt: new Date() },
     });
-
-    console.log(`[ai-review] Review complete for PR ${pullRequestId}`);
   } catch (err) {
-    console.error(`[ai-review] Review failed for PR ${pullRequestId}:`, err);
     await prisma.pullRequest.update({
       where: { id: pullRequestId },
       data: { reviewStatus: "failed" },

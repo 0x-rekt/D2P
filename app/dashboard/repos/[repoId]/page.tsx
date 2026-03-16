@@ -13,9 +13,14 @@ import {
   CheckCircle2,
   Loader2,
   XCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
-type PageProps = { params: Promise<{ repoId: string }> };
+type PageProps = {
+  params: Promise<{ repoId: string }>;
+  searchParams: Promise<{ page?: string }>;
+};
 
 const reviewStatusConfig = {
   pending: {
@@ -39,12 +44,21 @@ const reviewStatusConfig = {
     class: "border-red-500/30 bg-red-500/10 text-red-400",
   },
 };
-const RepoPage = async ({ params }: PageProps) => {
+
+const RepoPage = async ({ params, searchParams }: PageProps) => {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) redirect("/");
 
   const { repoId } = await params;
-  const { success, repo, pulls, error } = await getPullRequests(repoId);
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam || "1", 10));
+  const limit = 10;
+
+  const { success, repo, pulls, error, total } = await getPullRequests(
+    repoId,
+    page,
+    limit,
+  );
 
   if (!success || !repo) {
     return (
@@ -62,6 +76,10 @@ const RepoPage = async ({ params }: PageProps) => {
       </section>
     );
   }
+
+  const totalPages = total ? Math.ceil(total / limit) : 1;
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-black py-16">
@@ -95,7 +113,7 @@ const RepoPage = async ({ params }: PageProps) => {
         </div>
 
         {/* PR list */}
-        {pulls.length === 0 ? (
+        {pulls.length === 0 && total === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-white/10 py-24 text-center">
             <GitPullRequest className="mb-4 text-gray-600" size={48} />
             <h2 className="mb-2 text-lg font-semibold text-white">
@@ -108,7 +126,7 @@ const RepoPage = async ({ params }: PageProps) => {
         ) : (
           <div className="space-y-3">
             <p className="mb-4 text-sm text-gray-500">
-              {pulls.length} pull {pulls.length === 1 ? "request" : "requests"}
+              {total} pull {total === 1 ? "request" : "requests"}
             </p>
             {pulls.map((pr) => {
               const status =
@@ -175,6 +193,35 @@ const RepoPage = async ({ params }: PageProps) => {
                 </Link>
               );
             })}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-3">
+                {hasPrevPage && (
+                  <Link
+                    href={`?page=${page - 1}`}
+                    className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    <ChevronLeft size={18} />
+                    Previous
+                  </Link>
+                )}
+
+                <span className="text-sm text-gray-500">
+                  Page {page} of {totalPages}
+                </span>
+
+                {hasNextPage && (
+                  <Link
+                    href={`?page=${page + 1}`}
+                    className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    Next
+                    <ChevronRight size={18} />
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -1,10 +1,22 @@
 import { getRepositories } from "@/actions/repos";
 import { RepoCard } from "@/components/RepoCard";
 import { Badge } from "@/components/ui/badge";
-import { Github, AlertCircle } from "lucide-react";
+import { Github, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
-const Dashboard = async () => {
-  const { success, repositories, error, count } = await getRepositories();
+type PageProps = {
+  searchParams: Promise<{ page?: string }>;
+};
+
+const Dashboard = async ({ searchParams }: PageProps) => {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam || "1", 10));
+  const limit = 12;
+
+  const { success, repositories, error, count, total } = await getRepositories(
+    page,
+    limit,
+  );
 
   if (error) {
     return (
@@ -41,6 +53,10 @@ const Dashboard = async () => {
     );
   }
 
+  const totalPages = total ? Math.ceil(total / limit) : 1;
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+
   return (
     <section className="relative min-h-screen overflow-hidden bg-black py-16 sm:py-24">
       <div className="absolute left-1/2 top-0 -z-10 h-150 w-250 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
@@ -60,7 +76,7 @@ const Dashboard = async () => {
             Your Repositories
           </h1>
           <p className="text-lg text-gray-400">
-            {count} {count === 1 ? "repository" : "repositories"} found
+            {total} {total === 1 ? "repository" : "repositories"} found
           </p>
         </div>
 
@@ -73,6 +89,35 @@ const Dashboard = async () => {
             />
           ))}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-12 flex items-center justify-center gap-3">
+            {hasPrevPage && (
+              <Link
+                href={`/dashboard?page=${page - 1}`}
+                className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                <ChevronLeft size={18} />
+                Previous
+              </Link>
+            )}
+
+            <span className="text-sm text-gray-500">
+              Page {page} of {totalPages}
+            </span>
+
+            {hasNextPage && (
+              <Link
+                href={`/dashboard?page=${page + 1}`}
+                className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                Next
+                <ChevronRight size={18} />
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

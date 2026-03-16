@@ -28,6 +28,9 @@ type GetRepositoriesResponse = {
   repositories?: RepositoryWithConnection[];
   error?: string;
   count?: number;
+  total?: number;
+  page?: number;
+  limit?: number;
 };
 
 type ConnectRepositoryResponse = {
@@ -35,7 +38,10 @@ type ConnectRepositoryResponse = {
   error?: string;
 };
 
-export const getRepositories = async (): Promise<GetRepositoriesResponse> => {
+export const getRepositories = async (
+  page: number = 1,
+  limit: number = 12,
+): Promise<GetRepositoriesResponse> => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -106,13 +112,19 @@ export const getRepositories = async (): Promise<GetRepositoriesResponse> => {
         connectedRepoId: connectedRepoIds.get(repo.id) ?? null,
       }));
 
+    const total = repositoriesWithStatus.length;
+    const skip = (page - 1) * limit;
+    const paginatedRepos = repositoriesWithStatus.slice(skip, skip + limit);
+
     return {
       success: true,
-      repositories: repositoriesWithStatus,
-      count: repositoriesWithStatus.length,
+      repositories: paginatedRepos,
+      count: paginatedRepos.length,
+      total,
+      page,
+      limit,
     };
   } catch (error) {
-    console.log(error);
     return { success: false, error: "Failed to fetch repositories" };
   }
 };
@@ -177,8 +189,6 @@ export const connectRepository = async (
     let webhhookId: number | null = null;
 
     try {
-      console.log("owner:", owner, "repo:", repo);
-
       const { data: webhook } = await axios.post(
         `https://api.github.com/repos/${owner}/${repo}/hooks`,
         {
@@ -202,7 +212,6 @@ export const connectRepository = async (
 
       webhhookId = webhook.id;
     } catch (error) {
-      console.log("Failed to create webhook:", error);
       return { success: false, error: "Failed to create webhook" };
     }
 
@@ -222,7 +231,6 @@ export const connectRepository = async (
 
     return { success: true };
   } catch (error) {
-    console.log(error);
     return { success: false, error: "Failed to connect repository" };
   }
 };
@@ -257,7 +265,6 @@ export const checkRepositoryConnection = async (
       isConnected: !!repository,
     };
   } catch (error) {
-    console.log(error);
     return {
       success: false,
       isConnected: false,
