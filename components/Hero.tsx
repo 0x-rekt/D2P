@@ -24,20 +24,20 @@ const Hero = () => {
           </Badge>
         </div>
 
-        <h1 className="mb-6 bg-linear-to-b from-white to-gray-500 bg-clip-text text-5xl font-extrabold tracking-tighter text-transparent sm:text-7xl">
-          Automate your code reviews <br /> with{" "}
+        <h1 className="mb-4 bg-linear-to-b from-white to-gray-500 bg-clip-text text-3xl font-extrabold tracking-tighter text-transparent sm:mb-6 sm:text-5xl md:text-6xl lg:text-7xl">
+          Automate your code reviews <br className="hidden sm:block" /> with{" "}
           <span className="bg-linear-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
             D2P
           </span>
         </h1>
 
-        <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-gray-400">
+        <p className="mx-auto mb-6 max-w-2xl text-sm leading-relaxed text-gray-400 sm:mb-10 sm:text-base md:text-lg">
           Connect your GitHub repositories in seconds. D2P analyzes every Pull
           Request, suggests high-impact improvements, and lets you apply fixes
           with a single click.
         </p>
 
-        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 sm:flex-row">
           {session ? (
             <Button
               size="lg"
@@ -52,19 +52,19 @@ const Hero = () => {
           )}
         </div>
 
-        <div className="mt-16 overflow-hidden rounded-xl border border-white/10 bg-zinc-900/50 p-2 shadow-2xl backdrop-blur-sm">
-          <div className="flex items-center gap-2 border-b border-white/5 bg-zinc-950 px-4 py-3">
-            <div className="flex gap-1.5">
-              <div className="h-3 w-3 rounded-full bg-red-500/50" />
-              <div className="h-3 w-3 rounded-full bg-yellow-500/50" />
-              <div className="h-3 w-3 rounded-full bg-green-500/50" />
+        <div className="mt-8 overflow-hidden rounded-xl border border-white/10 bg-zinc-900/50 p-1 shadow-2xl backdrop-blur-sm sm:mt-12 md:mt-16 sm:p-2">
+          <div className="flex items-center gap-2 border-b border-white/5 bg-zinc-950 px-2 py-2 sm:px-4 sm:py-3">
+            <div className="flex gap-1 sm:gap-1.5">
+              <div className="h-2 w-2 rounded-full bg-red-500/50 sm:h-3 sm:w-3" />
+              <div className="h-2 w-2 rounded-full bg-yellow-500/50 sm:h-3 sm:w-3" />
+              <div className="h-2 w-2 rounded-full bg-green-500/50 sm:h-3 sm:w-3" />
             </div>
-            <div className="ml-4 flex items-center gap-2 text-xs font-medium text-gray-500">
-              <Code2 size={14} />
-              <span>pr_reviewer.py</span>
+            <div className="ml-2 flex items-center gap-1 text-xs font-medium text-gray-500 sm:ml-4 sm:gap-2">
+              <Code2 size={12} className="sm:size-14" />
+              <span className="text-[10px] sm:text-xs">pr_reviewer.py</span>
             </div>
           </div>
-          <div className="h-75 w-full bg-zinc-900/30 p-6 text-left font-mono text-sm sm:h-100">
+          <div className="max-h-60 w-full overflow-hidden bg-zinc-900/30 p-3 text-left font-mono text-xs sm:max-h-80 sm:p-4 sm:text-xs md:max-h-96 md:text-sm">
             <div className="flex gap-4">
               <span className="text-zinc-600">1</span>
               <span className="text-blue-400">def</span>{" "}

@@ -43,11 +43,11 @@ export default async function PullRequestPage({ params }: PageProps) {
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-black py-16">
-      <div className="absolute left-1/2 top-0 -z-10 h-96 w-[600px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
+      <div className="absolute left-1/2 top-0 -z-10 h-96 w-150 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
 
-      <div className="container mx-auto max-w-7xl px-6">
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
-        <div className="mb-6 flex items-center gap-2 text-sm text-gray-500">
+        <div className="mb-4 flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-500 sm:mb-6">
           <Link href="/dashboard" className="hover:text-gray-300">
             Dashboard
           </Link>
@@ -63,32 +63,36 @@ export default async function PullRequestPage({ params }: PageProps) {
         </div>
 
         {/* PR header */}
-        <div className="mb-8 rounded-xl border border-white/10 bg-gradient-to-b from-gray-900/50 to-black/50 p-6 backdrop-blur-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
+        <div className="mb-6 rounded-xl border border-white/10 bg-linear-to-b from-gray-900/50 to-black/50 p-4 sm:p-6 backdrop-blur-sm sm:mb-8\">
+          <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-start">
+            <div className="flex min-w-0 flex-1 items-start gap-2 sm:gap-3">
               <GitPullRequest
-                size={22}
+                size={30}
                 className="mt-0.5 shrink-0 text-green-400"
               />
-              <div>
-                <h1 className="text-xl font-bold text-white">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg font-bold text-white sm:text-xl">
                   {pull.title}
-                  <span className="ml-2 text-base font-normal text-gray-500">
+                  <span className="ml-1 text-sm font-normal text-gray-500 sm:ml-2 sm:text-base">
                     #{pull.prNumber}
                   </span>
                 </h1>
-                <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                  <span className="flex items-center gap-1.5">
-                    <GitBranch size={12} />
-                    <span className="text-gray-300">{pull.headBranch}</span>
-                    <span>→</span>
-                    <span className="text-gray-300">{pull.baseBranch}</span>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500 sm:gap-4">
+                  <span className="flex items-center gap-1 sm:gap-1.5">
+                    <GitBranch size={20} className="shrink-0" />
+                    <span className="truncate text-gray-300">
+                      {pull.headBranch}
+                    </span>
+                    <span className="shrink-0">→</span>
+                    <span className="truncate text-gray-300">
+                      {pull.baseBranch}
+                    </span>
                   </span>
-                  <span>
+                  <span className="hidden line-clamp-1 sm:inline">
                     by <span className="text-gray-300">{pull.authorLogin}</span>
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Clock size={12} />
+                  <span className="flex items-center gap-1 sm:gap-1.5">
+                    <Clock size={14} className="shrink-0" />
                     {new Date(pull.createdAt).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -97,7 +101,7 @@ export default async function PullRequestPage({ params }: PageProps) {
                   </span>
                 </div>
                 {pull.body && (
-                  <p className="mt-3 text-sm leading-relaxed text-gray-400">
+                  <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-gray-400 sm:mt-3 sm:line-clamp-none sm:text-sm">
                     {pull.body}
                   </p>
                 )}
@@ -107,7 +111,7 @@ export default async function PullRequestPage({ params }: PageProps) {
               href={pull.prUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-400 hover:bg-white/10 hover:text-white"
+              className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-gray-400 hover:bg-white/10 hover:text-white sm:px-3"
             >
               View on GitHub ↗
             </a>

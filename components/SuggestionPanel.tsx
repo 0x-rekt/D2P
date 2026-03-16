@@ -111,22 +111,25 @@ function SuggestionCard({
     >
       {/* Header */}
       <div
-        className="flex cursor-pointer items-center justify-between p-4"
+        className="flex cursor-pointer flex-col items-start justify-between gap-2 p-3 sm:p-4 sm:flex-row sm:items-center"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className="flex min-w-0 items-center gap-3">
-          <TypeIcon size={15} className={type.textColor} />
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-start gap-2 sm:items-center sm:gap-3">
+          <TypeIcon
+            size={14}
+            className={`${type.textColor} shrink-0 sm:size-15`}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
               <Badge
                 variant="outline"
-                className={`text-[10px] ${type.badgeClass}`}
+                className={`text-[9px] sm:text-[10px] ${type.badgeClass}`}
               >
                 {type.label}
               </Badge>
               <Badge
                 variant="outline"
-                className={`text-[10px] ${severityClass[suggestion.severity] ?? severityClass.minor}`}
+                className={`text-[9px] sm:text-[10px] ${severityClass[suggestion.severity] ?? severityClass.minor}`}
               >
                 {suggestion.severity}
               </Badge>
@@ -135,12 +138,12 @@ function SuggestionCard({
                 <span className="text-gray-600">:{suggestion.startLine}</span>
               </span>
             </div>
-            <p className="mt-1 line-clamp-1 text-sm text-gray-300">
+            <p className="mt-1 line-clamp-1 text-xs sm:text-sm text-gray-300">
               {suggestion.comment}
             </p>
           </div>
         </div>
-        <div className="ml-3 flex shrink-0 items-center gap-2">
+        <div className="ml-0 flex shrink-0 items-center gap-1 sm:ml-3 sm:gap-2">
           {status === "accepted" && (
             <CheckCircle2 size={15} className="text-green-400" />
           )}
@@ -165,18 +168,18 @@ function SuggestionCard({
           {/* Side-by-side diff */}
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             <div>
-              <p className="mb-1.5 text-xs font-semibold text-red-400">
+              <p className="mb-1 text-[10px] font-semibold text-red-400 sm:mb-1.5 sm:text-xs">
                 Before
               </p>
-              <pre className="no-scrollbar overflow-x-auto rounded-lg border border-red-500/20 bg-red-500/5 p-3 font-mono text-xs leading-relaxed text-gray-300">
+              <pre className="no-scrollbar max-h-40 overflow-auto rounded-lg border border-red-500/20 bg-red-500/5 p-2 font-mono text-[10px] leading-relaxed text-gray-300 sm:p-3 sm:text-xs">
                 <code>{suggestion.originalCode}</code>
               </pre>
             </div>
             <div>
-              <p className="mb-1.5 text-xs font-semibold text-green-400">
+              <p className="mb-1 text-[10px] font-semibold text-green-400 sm:mb-1.5 sm:text-xs">
                 After
               </p>
-              <pre className="no-scrollbar overflow-x-auto rounded-lg border border-green-500/20 bg-green-500/5 p-3 font-mono text-xs leading-relaxed text-gray-300">
+              <pre className="no-scrollbar max-h-40 overflow-auto rounded-lg border border-green-500/20 bg-green-500/5 p-2 font-mono text-[10px] leading-relaxed text-gray-300 sm:p-3 sm:text-xs">
                 <code>{suggestion.suggestedCode}</code>
               </pre>
             </div>
@@ -184,7 +187,7 @@ function SuggestionCard({
 
           {/* Actions */}
           {status === "pending" && (
-            <div className="mt-4 flex gap-2">
+            <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row">
               <Button
                 size="sm"
                 onClick={() => handle("accepted")}
@@ -207,9 +210,9 @@ function SuggestionCard({
             </div>
           )}
           {status === "accepted" && (
-            <div className="mt-3 flex items-center gap-2">
-              <p className="flex items-center gap-1.5 text-xs text-green-400">
-                <CheckCircle2 size={12} /> Accepted
+            <div className="mt-2 flex flex-col items-start gap-1 sm:mt-3 sm:flex-row sm:items-center sm:gap-2">
+              <p className="flex items-center gap-1 text-xs text-green-400 sm:gap-1.5">
+                <CheckCircle2 size={11} className="sm:size-12" /> Accepted
               </p>
               <button
                 onClick={() => handle("rejected")}
@@ -221,9 +224,9 @@ function SuggestionCard({
             </div>
           )}
           {status === "rejected" && (
-            <div className="mt-3 flex items-center gap-2">
-              <p className="flex items-center gap-1.5 text-xs text-gray-500">
-                <XCircle size={12} /> Rejected
+            <div className="mt-2 flex flex-col items-start gap-1 sm:mt-3 sm:flex-row sm:items-center sm:gap-2">
+              <p className="flex items-center gap-1 text-xs text-gray-500 sm:gap-1.5">
+                <XCircle size={11} className="sm:size-12" /> Rejected
               </p>
               <button
                 onClick={() => handle("accepted")}
@@ -268,13 +271,16 @@ function ApplyButton({
 
   if (prUrl) {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-green-500/20 bg-green-500/5 px-4 py-3">
-        <CheckCircle2 size={16} className="shrink-0 text-green-400" />
+      <div className="flex flex-col items-start gap-2 rounded-xl border border-green-500/20 bg-green-500/5 px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-4">
+        <CheckCircle2
+          size={14}
+          className="shrink-0 text-green-400 sm:size-16"
+        />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-green-400">
+          <p className="text-xs font-medium text-green-400 sm:text-sm">
             Changes applied successfully
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="mt-0.5 text-xs text-gray-500">
             A new pull request has been created with your accepted suggestions
           </p>
         </div>
@@ -282,21 +288,22 @@ function ApplyButton({
           href={prUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex shrink-0 items-center gap-1.5 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-500/20 transition-colors"
+          className="flex shrink-0 items-center gap-1 rounded-lg border border-green-500/30 bg-green-500/10 px-2 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-500/20 transition-colors sm:gap-1.5 sm:px-3"
         >
-          <GitPullRequest size={13} />
-          View PR
-          <ExternalLink size={11} />
+          <GitPullRequest size={12} className="sm:size-13" />
+          <span className="hidden sm:inline">View PR</span>
+          <span className="sm:hidden">PR</span>
+          <ExternalLink size={10} className="sm:size-11" />
         </a>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+    <div className="space-y-2 flex flex-col gap-2">
+      <div className="flex flex-col items-start justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-4">
         <div>
-          <p className="text-sm font-medium text-white">
+          <p className="text-xs font-medium text-white sm:text-sm">
             {acceptedCount} suggestion{acceptedCount !== 1 ? "s" : ""} accepted
           </p>
           <p className="text-xs text-gray-500 mt-0.5">

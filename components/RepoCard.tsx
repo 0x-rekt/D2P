@@ -48,31 +48,33 @@ export const RepoCard = ({ repo, isConnected }: RepoCardProps) => {
   };
 
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-white/10 bg-linear-to-b from-gray-900/50 to-black/50 p-6 backdrop-blur-sm transition-all hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10">
-      <div className="mb-4">
-        <div className="mb-2 flex items-start justify-between">
-          <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">
+    <div className="group relative overflow-hidden rounded-lg border border-white/10 bg-linear-to-b from-gray-900/50 to-black/50 p-4 sm:p-5 md:p-6 backdrop-blur-sm transition-all hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10">
+      <div className="mb-3 sm:mb-4">
+        <div className="mb-1 flex items-start justify-between gap-2 sm:mb-2">
+          <h3 className="truncate text-base font-bold text-white group-hover:text-blue-400 transition-colors sm:text-lg md:text-xl">
             {repo.name}
           </h3>
           <Badge
             variant="outline"
-            className={
+            className={`shrink-0 text-xs ${
               repo.private
                 ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-400"
                 : "border-green-500/30 bg-green-500/10 text-green-400"
-            }
+            }`}
           >
             {repo.private ? "Private" : "Public"}
           </Badge>
         </div>
-        <p className="text-sm text-gray-500">{repo.full_name}</p>
+        <p className="truncate text-xs text-gray-500 sm:text-sm">
+          {repo.full_name}
+        </p>
       </div>
 
-      <p className="mb-6 min-h-10 text-sm leading-relaxed text-gray-400">
+      <p className="mb-4 line-clamp-2 min-h-8 text-xs leading-relaxed text-gray-400 sm:mb-5 sm:line-clamp-3 sm:min-h-10 sm:text-sm md:mb-6">
         {repo.description || "No description provided"}
       </p>
 
-      <div className="mb-6 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+      <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-gray-500 sm:gap-3 sm:mb-5 md:mb-6">
         {repo.language && (
           <div className="flex items-center gap-1.5">
             <span
@@ -91,7 +93,7 @@ export const RepoCard = ({ repo, isConnected }: RepoCardProps) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:gap-3">
         <ConnectButton repoId={repo.id} initialConnected={isConnected} />
         {isConnected && repo.connectedRepoId && (
           <Button
