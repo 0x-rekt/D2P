@@ -113,7 +113,7 @@ export const POST = async (req: NextRequest) => {
       },
     },
     create: {
-      prGithubId: pr.id,
+      prGithubId: BigInt(pr.id),
       prNumber: pr.number,
       title: pr.title,
       body: pr.body ?? "",

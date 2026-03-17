@@ -45,6 +45,21 @@ const reviewStatusConfig = {
   },
 };
 
+const stateConfig = {
+  open: {
+    label: "Open",
+    class: "border-green-500/30 bg-green-500/10 text-green-400",
+  },
+  closed: {
+    label: "Closed",
+    class: "border-red-500/30 bg-red-500/10 text-red-400",
+  },
+  merged: {
+    label: "Merged",
+    class: "border-purple-500/30 bg-purple-500/10 text-purple-400",
+  },
+};
+
 const RepoPage = async ({ params, searchParams }: PageProps) => {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) redirect("/");
@@ -187,16 +202,28 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
                     </div>
                   </div>
 
-                  <div className="shrink-0 self-end md:self-center">
+                  <div className="shrink-0 flex items-center gap-2 self-end md:self-center">
+                    <Badge
+                      variant="outline"
+                      className={`text-xs ${(stateConfig[pr.state as keyof typeof stateConfig] ?? stateConfig.open).class}`}
+                    >
+                      {
+                        (
+                          stateConfig[pr.state as keyof typeof stateConfig] ??
+                          stateConfig.open
+                        ).label
+                      }
+                    </Badge>
+
                     <Badge
                       variant="outline"
                       className={`gap-1 text-xs md:gap-1.5 md:text-sm ${status.class}`}
                     >
                       <StatusIcon
                         size={10}
-                        className={`md:size-11 ${
+                        className={
                           pr.reviewStatus === "reviewing" ? "animate-spin" : ""
-                        }`}
+                        }
                       />
                       <span className="hidden sm:inline">{status.label}</span>
                     </Badge>
