@@ -5,12 +5,20 @@ import { authClient, useSession } from "@/lib/auth-client";
 import SignInBtn from "@/components/SignInBtn";
 import { Button } from "./ui/button";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const NavBar = () => {
   const { data: session, isPending } = useSession();
+  const router = useRouter();
 
   const handleSignOut = async () => {
-    await authClient.signOut();
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/");
+        },
+      },
+    });
   };
 
   return (

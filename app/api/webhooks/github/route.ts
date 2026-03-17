@@ -105,6 +105,31 @@ export const POST = async (req: NextRequest) => {
     return NextResponse.json({ success: true, message: "PR ignored" });
   }
 
+  let shouldResetReview = true;
+  if (action === "synchronize") {
+    const existingPr = await prisma.pullRequest.findUnique({
+      where: {
+        repositoryId_prNumber: {
+          repositoryId: repo.id,
+          prNumber: pr.number,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingPr) {
+      const acceptedCount = await prisma.suggestion.count({
+        where: {
+          pullRequestId: existingPr.id,
+          status: "accepted",
+        },
+      });
+      if (acceptedCount > 0) {
+        shouldResetReview = false;
+      }
+    }
+  }
+
   const pullRequest = await prisma.pullRequest.upsert({
     where: {
       repositoryId_prNumber: {
@@ -131,12 +156,15 @@ export const POST = async (req: NextRequest) => {
       headSha: pr.head.sha,
       diffUrl: pr.diff_url,
       state: pr.state,
-      reviewStatus: "pending",
-      reviewedAt: null,
+      ...(shouldResetReview
+        ? { reviewStatus: "pending", reviewedAt: null }
+        : {}),
     },
   });
 
-  analyzePullRequestWithAI(pullRequest.id, repo.userId);
+  await analyzePullRequestWithAI(pullRequest.id, repo.userId).catch((error) => {
+    console.error("Error analyzing pull request:", error);
+  });
 
   return NextResponse.json({ success: true, pullRequestId: pullRequest.id });
 };

@@ -14,7 +14,7 @@ import { SuggestionPanel } from "@/components/SuggestionPanel";
 
 type PageProps = { params: Promise<{ repoId: string; pullId: string }> };
 
-export default async function PullRequestPage({ params }: PageProps) {
+const PullRequestPage = async ({ params }: PageProps) => {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) redirect("/");
 
@@ -157,4 +157,6 @@ export default async function PullRequestPage({ params }: PageProps) {
       </div>
     </section>
   );
-}
+};
+
+export default PullRequestPage;

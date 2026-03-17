@@ -1,14 +1,23 @@
 import { getRepositories } from "@/actions/repos";
 import { RepoCard } from "@/components/RepoCard";
 import { Badge } from "@/components/ui/badge";
+import { auth } from "@/lib/auth";
 import { Github, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { headers } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 type PageProps = {
   searchParams: Promise<{ page?: string }>;
 };
 
 const Dashboard = async ({ searchParams }: PageProps) => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session?.user) {
+    return redirect("/");
+  }
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam || "1", 10));
   const limit = 9;

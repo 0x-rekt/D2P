@@ -156,7 +156,12 @@ export const analyzePullRequestWithAI = async (
       pr.title,
     );
 
-    await prisma.suggestion.deleteMany({ where: { pullRequestId } });
+    await prisma.suggestion.deleteMany({
+      where: {
+        pullRequestId,
+        status: { in: ["pending", "rejected"] },
+      },
+    });
 
     if (suggestions.length > 0) {
       await prisma.suggestion.createMany({
