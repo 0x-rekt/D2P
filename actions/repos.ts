@@ -38,6 +38,12 @@ type ConnectRepositoryResponse = {
   error?: string;
 };
 
+type CheckRepositoryConnectionResponse = {
+  success: boolean;
+  isConnected: boolean;
+  error?: string;
+};
+
 export const getRepositories = async (
   page: number = 1,
   limit: number = 12,
@@ -235,12 +241,6 @@ export const connectRepository = async (
   }
 };
 
-type CheckRepositoryConnectionResponse = {
-  success: boolean;
-  isConnected: boolean;
-  error?: string;
-};
-
 export const checkRepositoryConnection = async (
   repoId: number,
 ): Promise<CheckRepositoryConnectionResponse> => {
@@ -271,4 +271,62 @@ export const checkRepositoryConnection = async (
       error: "Failed to check repository connection",
     };
   }
+};
+
+export const disconnectRepository = async (
+  repoId: number,
+): Promise<ConnectRepositoryResponse> => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) return { success: false, error: "Unauthorized" };
+
+  const user = await prisma.account.findFirst({
+    where: {
+      userId: session.user.id,
+      providerId: "github",
+    },
+    select: {
+      accessToken: true,
+    },
+  });
+
+  if (!user || !user.accessToken)
+    return { success: false, error: "Unauthorized" };
+
+  const repo = await prisma.repository.findFirst({
+    where: {
+      repoGithubId: repoId,
+      userId: session.user.id,
+    },
+  });
+
+  if (!repo) return { success: false, error: "Repository not found" };
+
+  if (repo.webhookId) {
+    const [owner, repoName] = repo.fullName.split("/");
+
+    await axios
+      .delete(
+        `https://api.github.com/repos/${owner}/${repoName}/hooks/${repo.webhookId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.accessToken}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        },
+      )
+      .catch((err) => {
+        console.log(`Failed to delete webhook: ${err}`);
+      });
+  }
+
+  await prisma.repository.delete({
+    where: {
+      id: repo.id,
+    },
+  });
+
+  return { success: true };
 };

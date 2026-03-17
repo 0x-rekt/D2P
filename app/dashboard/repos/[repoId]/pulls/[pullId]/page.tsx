@@ -25,7 +25,7 @@ export default async function PullRequestPage({ params }: PageProps) {
     return (
       <section className="flex min-h-screen items-center justify-center bg-black">
         <div className="text-center">
-          <AlertCircle className="mx-auto mb-4 text-red-500" size={48} />
+          <AlertCircle className="mx-auto mb-4 text-red-500" size={24} />
           <p className="text-gray-400">{error ?? "Pull request not found"}</p>
           <Link
             href={`/dashboard/repos/${repoId}`}
@@ -46,7 +46,6 @@ export default async function PullRequestPage({ params }: PageProps) {
       <div className="absolute left-1/2 top-0 -z-10 h-96 w-150 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
 
       <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumb */}
         <div className="mb-4 flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-500 sm:mb-6">
           <Link href="/dashboard" className="hover:text-gray-300">
             Dashboard
@@ -62,7 +61,6 @@ export default async function PullRequestPage({ params }: PageProps) {
           <span className="text-gray-300">PR #{pull.prNumber}</span>
         </div>
 
-        {/* PR header */}
         <div className="mb-6 rounded-xl border border-white/10 bg-linear-to-b from-gray-900/50 to-black/50 p-4 sm:p-6 backdrop-blur-sm sm:mb-8\">
           <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-start">
             <div className="flex min-w-0 flex-1 items-start gap-2 sm:gap-3">
@@ -118,7 +116,6 @@ export default async function PullRequestPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Suggestions or status */}
         {isReviewing ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/5 py-20 text-center">
             <Loader2 className="mb-4 animate-spin text-blue-400" size={36} />

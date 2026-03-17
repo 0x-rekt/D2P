@@ -1,6 +1,6 @@
 "use client";
 
-import { connectRepository } from "@/actions/repos";
+import { connectRepository, disconnectRepository } from "@/actions/repos";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2, Unplug, Zap } from "lucide-react";
@@ -29,7 +29,14 @@ const ConnectButton = ({ repoId, initialConnected }: ConnectButtonProps) => {
   };
 
   const handleDisconnect = () => {
-    setConnected(false);
+    setError(null);
+    startTransition(async () => {
+      const result = await disconnectRepository(repoId);
+      if (result.success) {
+        setConnected(false);
+        router.refresh();
+      } else setError(result.error || "Failed to disconnect repository");
+    });
   };
 
   return (

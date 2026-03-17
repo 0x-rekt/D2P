@@ -109,16 +109,12 @@ function SuggestionCard({
             : "border-white/10 bg-linear-to-b from-gray-900/50 to-black/50"
       }`}
     >
-      {/* Header */}
       <div
         className="flex cursor-pointer flex-col items-start justify-between gap-2 p-3 sm:p-4 sm:flex-row sm:items-center"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex min-w-0 flex-1 items-start gap-2 sm:items-center sm:gap-3">
-          <TypeIcon
-            size={14}
-            className={`${type.textColor} shrink-0 sm:size-15`}
-          />
+          <TypeIcon size={30} className={`${type.textColor} shrink-0`} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1 sm:gap-2">
               <Badge
@@ -145,27 +141,25 @@ function SuggestionCard({
         </div>
         <div className="ml-0 flex shrink-0 items-center gap-1 sm:ml-3 sm:gap-2">
           {status === "accepted" && (
-            <CheckCircle2 size={15} className="text-green-400" />
+            <CheckCircle2 size={20} className="text-green-400" />
           )}
           {status === "rejected" && (
-            <XCircle size={15} className="text-gray-500" />
+            <XCircle size={20} className="text-gray-500" />
           )}
           {expanded ? (
-            <ChevronUp size={15} className="text-gray-500" />
+            <ChevronUp size={20} className="text-gray-500" />
           ) : (
-            <ChevronDown size={15} className="text-gray-500" />
+            <ChevronDown size={20} className="text-gray-500" />
           )}
         </div>
       </div>
 
-      {/* Body */}
       {expanded && (
         <div className="border-t border-white/5 p-4">
           <p className="mb-4 text-sm leading-relaxed text-gray-300">
             {suggestion.comment}
           </p>
 
-          {/* Side-by-side diff */}
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             <div>
               <p className="mb-1 text-[10px] font-semibold text-red-400 sm:mb-1.5 sm:text-xs">
@@ -185,7 +179,6 @@ function SuggestionCard({
             </div>
           </div>
 
-          {/* Actions */}
           {status === "pending" && (
             <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row">
               <Button
@@ -212,7 +205,7 @@ function SuggestionCard({
           {status === "accepted" && (
             <div className="mt-2 flex flex-col items-start gap-1 sm:mt-3 sm:flex-row sm:items-center sm:gap-2">
               <p className="flex items-center gap-1 text-xs text-green-400 sm:gap-1.5">
-                <CheckCircle2 size={11} className="sm:size-12" /> Accepted
+                <CheckCircle2 size={11} /> Accepted
               </p>
               <button
                 onClick={() => handle("rejected")}
@@ -226,7 +219,7 @@ function SuggestionCard({
           {status === "rejected" && (
             <div className="mt-2 flex flex-col items-start gap-1 sm:mt-3 sm:flex-row sm:items-center sm:gap-2">
               <p className="flex items-center gap-1 text-xs text-gray-500 sm:gap-1.5">
-                <XCircle size={11} className="sm:size-12" /> Rejected
+                <XCircle size={11} /> Rejected
               </p>
               <button
                 onClick={() => handle("accepted")}
@@ -243,7 +236,6 @@ function SuggestionCard({
   );
 }
 
-// ─── Apply button ─────────────────────────────────────────────────────────────
 function ApplyButton({
   pullRequestId,
   acceptedCount,
@@ -272,10 +264,7 @@ function ApplyButton({
   if (prUrl) {
     return (
       <div className="flex flex-col items-start gap-2 rounded-xl border border-green-500/20 bg-green-500/5 px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-4">
-        <CheckCircle2
-          size={14}
-          className="shrink-0 text-green-400 sm:size-16"
-        />
+        <CheckCircle2 size={30} className="shrink-0 text-green-400" />
         <div className="flex-1 min-w-0">
           <p className="text-xs font-medium text-green-400 sm:text-sm">
             Changes applied successfully
@@ -290,10 +279,10 @@ function ApplyButton({
           rel="noopener noreferrer"
           className="flex shrink-0 items-center gap-1 rounded-lg border border-green-500/30 bg-green-500/10 px-2 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-500/20 transition-colors sm:gap-1.5 sm:px-3"
         >
-          <GitPullRequest size={12} className="sm:size-13" />
+          <GitPullRequest size={14} />
           <span className="hidden sm:inline">View PR</span>
           <span className="sm:hidden">PR</span>
-          <ExternalLink size={10} className="sm:size-11" />
+          <ExternalLink size={14} />
         </a>
       </div>
     );
@@ -339,7 +328,6 @@ function ApplyButton({
   );
 }
 
-// ─── Main panel ───────────────────────────────────────────────────────────────
 export function SuggestionPanel({
   suggestions: initialSuggestions,
   pullRequestId,
@@ -374,14 +362,12 @@ export function SuggestionPanel({
 
   return (
     <div className="space-y-4">
-      {/* Apply button — always visible at the top */}
       <ApplyButton
         pullRequestId={pullRequestId}
         acceptedCount={counts.accepted}
         initialPrUrl={initialPrUrl}
       />
 
-      {/* Filter tabs */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles size={15} className="text-blue-400" />
@@ -407,7 +393,6 @@ export function SuggestionPanel({
         </div>
       </div>
 
-      {/* Cards */}
       <div className="space-y-3">
         {filtered.length === 0 ? (
           <p className="py-10 text-center text-sm text-gray-500">
