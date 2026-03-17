@@ -174,23 +174,10 @@ export const applyAcceptedSuggestions = async (
 
   if (!result.success) return result;
 
-  try {
-    await prisma.pullRequest.update({
-      where: { id: pullRequestId },
-      data: { appliedPrUrl: result.prUrl },
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-
-    if (!message.includes("Unknown argument `appliedPrUrl`")) {
-      throw error;
-    }
-
-    console.warn(
-      "Skipping appliedPrUrl persistence because generated Prisma client is stale.",
-      { pullRequestId },
-    );
-  }
+  await prisma.pullRequest.update({
+    where: { id: pullRequestId },
+    data: { appliedPrUrl: result.prUrl },
+  });
 
   return { success: true, prUrl: result.prUrl, prNumber: result.prNumber };
 };
