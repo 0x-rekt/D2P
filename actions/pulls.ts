@@ -1,5 +1,6 @@
 "use server";
 
+import { analyzePullRequestWithAI } from "@/lib/ai-review";
 import { auth } from "@/lib/auth";
 import { applyAndCreatePR } from "@/lib/gh-apply";
 import prisma from "@/lib/prisma";
@@ -192,4 +193,40 @@ export const applyAcceptedSuggestions = async (
   }
 
   return { success: true, prUrl: result.prUrl, prNumber: result.prNumber };
+};
+
+export const retriggerReview = async (
+  pullRequestId: string,
+): Promise<{ success: boolean; error?: string }> => {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) return { success: false, error: "Unauthorized" };
+
+  const pr = await prisma.pullRequest.findFirst({
+    where: {
+      id: pullRequestId,
+      repository: { userId: session.user.id },
+    },
+    select: {
+      id: true,
+      reviewStatus: true,
+      repository: { select: { userId: true } },
+    },
+  });
+
+  if (!pr) return { success: false, error: "Pull request not found" };
+
+  if (pr.reviewStatus === "reviewing") {
+    return { success: false, error: "Review already in progress" };
+  }
+
+  await prisma.pullRequest.update({
+    where: { id: pullRequestId },
+    data: { reviewStatus: "pending", reviewedAt: null },
+  });
+
+  analyzePullRequestWithAI(pullRequestId, pr.repository.userId).catch((err) => {
+    console.error("[retriggerReview] error:", err);
+  });
+
+  return { success: true };
 };

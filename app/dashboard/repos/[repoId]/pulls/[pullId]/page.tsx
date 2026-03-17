@@ -11,6 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { SuggestionPanel } from "@/components/SuggestionPanel";
+import { RetriggerButton } from "@/components/RetriggerBtn";
 
 type PageProps = { params: Promise<{ repoId: string; pullId: string }> };
 
@@ -132,10 +133,10 @@ const PullRequestPage = async ({ params }: PageProps) => {
             <h2 className="mb-2 text-lg font-semibold text-white">
               Review Failed
             </h2>
-            <p className="text-sm text-gray-500">
-              Something went wrong during the AI review. Push a new commit to
-              retry.
+            <p className="mb-6 text-sm text-gray-500">
+              Something went wrong during the AI review.
             </p>
+            <RetriggerButton pullRequestId={pull.id} />
           </div>
         ) : pull.suggestions.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-white/10 py-20 text-center">
