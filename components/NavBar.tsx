@@ -149,7 +149,6 @@ const NavBar = () => {
               <SignInBtn />
             )}
 
-            {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-gray-400 transition-all hover:bg-white/10 hover:text-white md:hidden"
@@ -161,18 +160,14 @@ const NavBar = () => {
         </div>
       </nav>
 
-      {/* Mobile menu overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          {/* Panel */}
           <div className="absolute right-0 top-16 w-72 max-h-[calc(100vh-4rem)] overflow-y-auto rounded-bl-2xl border-b border-l border-white/10 bg-gray-950/95 p-4 shadow-2xl backdrop-blur-xl animate-in slide-in-from-right-5 duration-200">
             <div className="flex flex-col gap-1">
-              {/* Home link */}
               <Link
                 href="/"
                 className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
@@ -214,19 +209,7 @@ const NavBar = () => {
               })}
             </div>
 
-            {/* Divider */}
             <div className="my-3 border-t border-white/10" />
-
-            {/* GitHub link in mobile */}
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-400 transition-all hover:bg-white/5 hover:text-white"
-            >
-              <Github size={16} className="text-gray-500" />
-              GitHub
-            </a>
           </div>
         </div>
       )}
