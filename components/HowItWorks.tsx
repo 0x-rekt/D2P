@@ -2,7 +2,7 @@ import React from "react";
 
 const HowItWorks = () => {
   return (
-    <section className="relative border-t border-white/5 bg-black px-6 py-24 sm:py-32 overflow-hidden">
+    <section id="how-it-works" className="relative border-t border-white/5 bg-black px-6 py-24 sm:py-32 overflow-hidden scroll-mt-20">
       <div className="absolute top-1/2 left-1/2 -z-10 h-96 w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600/10 blur-[120px]" />
 
       <div className="container relative mx-auto max-w-6xl">

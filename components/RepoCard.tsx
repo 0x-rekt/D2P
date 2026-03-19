@@ -93,36 +93,38 @@ export const RepoCard = ({ repo, isConnected }: RepoCardProps) => {
         </div>
       </div>
 
-      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:gap-3">
+      <div className="flex flex-col gap-2 sm:gap-3">
         <ConnectButton repoId={repo.id} initialConnected={isConnected} />
-        {isConnected && repo.connectedRepoId && (
+        <div className="flex flex-wrap items-center gap-2">
+          {isConnected && repo.connectedRepoId && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
+              asChild
+            >
+              <Link href={`/dashboard/repos/${repo.connectedRepoId}`}>
+                Open dashboard
+              </Link>
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"
-            className="border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
+            className="border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
             asChild
           >
-            <Link href={`/dashboard/repos/${repo.connectedRepoId}`}>
-              Open dashboard
-            </Link>
+            <a
+              href={repo.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5"
+            >
+              <ExternalLink size={14} />
+              GitHub
+            </a>
           </Button>
-        )}
-        <Button
-          size="sm"
-          variant="outline"
-          className="border-white/10 bg-white/80 hover:bg-white/10 hover:text-white"
-          asChild
-        >
-          <a
-            href={repo.html_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5"
-          >
-            <ExternalLink size={14} />
-            GitHub
-          </a>
-        </Button>
+        </div>
       </div>
     </div>
   );

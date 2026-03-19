@@ -48,7 +48,7 @@ const featuresData = [
 
 const Features = () => {
   return (
-    <section className="relative px-6 py-24 sm:py-32 bg-zinc-950">
+    <section id="features" className="relative px-6 py-24 sm:py-32 bg-zinc-950 scroll-mt-20">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-blue-900/10 via-black to-black border-y border-white/5"></div>
 
       <div className="container relative mx-auto max-w-7xl">
