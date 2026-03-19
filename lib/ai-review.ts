@@ -6,6 +6,9 @@ const ai = new GoogleGenAI({
   vertexai: true,
   project: process.env.GCP_PROJECT_ID!,
   location: process.env.GCP_REGION!,
+  googleAuthOptions: {
+    credentials: JSON.parse(process.env.GCP_SERVICE_ACCOUNT_KEY || "{}"),
+  },
 });
 
 type AISuggestion = {
@@ -185,6 +188,7 @@ export const analyzePullRequestWithAI = async (
       data: { reviewStatus: "reviewed", reviewedAt: new Date() },
     });
   } catch (err) {
+    console.log(err);
     await prisma.pullRequest.update({
       where: { id: pullRequestId },
       data: { reviewStatus: "failed" },
