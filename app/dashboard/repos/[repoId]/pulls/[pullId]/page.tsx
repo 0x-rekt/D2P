@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { SuggestionPanel } from "@/components/SuggestionPanel";
 import { RetriggerButton } from "@/components/RetriggerBtn";
+import { ReviewStatusWatcher } from "@/components/ReviewStatusWatcher";
 
 type PageProps = { params: Promise<{ repoId: string; pullId: string }> };
 
@@ -124,8 +125,9 @@ const PullRequestPage = async ({ params }: PageProps) => {
               AI Review in Progress
             </h2>
             <p className="text-sm text-gray-500">
-              Gemini is analyzing the diff. Refresh in a moment.
+              Gemini is analyzing the diff. This page will update automatically.
             </p>
+            <ReviewStatusWatcher pullId={pullId} />
           </div>
         ) : pull.reviewStatus === "failed" ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-red-500/20 bg-red-500/5 py-20 text-center">
