@@ -93,6 +93,7 @@ model Repository {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   pullRequests PullRequest[]
+  ciFailures   CiFailure[]
 
   @@index([userId])
   @@index([repoGithubId])
@@ -152,4 +153,33 @@ model Suggestion {
   @@index([pullRequestId])
   @@index([status])
   @@map("suggestion")
+}
+
+model CiFailure {
+  id            String @id @default(uuid())
+  workflowRunId BigInt @unique
+  workflowName  String
+  branch        String
+  commitSha     String
+  conclusion    String
+  logsUrl       String
+  htmlUrl       String
+
+  diagnosis      String?
+  rootCause      String?
+  fixSummary     String?
+  suggestedPatch String?
+
+  analysisStatus String  @default("pending")
+  appliedUrl     String?
+
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([repositoryId])
+  @@index([analysisStatus])
+  @@map("ci_failure")
 }

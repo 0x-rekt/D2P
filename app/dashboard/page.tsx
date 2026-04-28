@@ -21,10 +21,7 @@ const Dashboard = async ({ searchParams }: PageProps) => {
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam || "1", 10));
   const limit = 9;
-  const { success, repositories, error, count, total } = await getRepositories(
-    page,
-    limit,
-  );
+  const { repositories, error, total } = await getRepositories(page, limit);
 
   if (error) {
     return (

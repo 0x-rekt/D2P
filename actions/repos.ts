@@ -221,6 +221,33 @@ export const connectRepository = async (
       return { success: false, error: "Failed to create webhook" };
     }
 
+    const ciWebhookUrl = `${process.env.WEBHOOK_BASE_URL}/api/webhooks/github-ci`;
+
+    try {
+      await axios.post(
+        `https://api.github.com/repos/${owner}/${repo}/hooks`,
+        {
+          name: "web",
+          active: true,
+          events: ["workflow_run"],
+          config: {
+            url: ciWebhookUrl,
+            content_type: "json",
+            secret: webhookSecret,
+            insecure_ssl: "0",
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user.accessToken}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        },
+      );
+    } catch (error) {
+      console.log(`Failed to create CI webhook: ${error}`);
+    }
+
     await prisma.repository.create({
       data: {
         repoGithubId: repoData.id,
