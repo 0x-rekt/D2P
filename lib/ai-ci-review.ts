@@ -166,6 +166,8 @@ Diagnose the root cause and provide concrete fixes where possible. Return ONLY v
 
 Rules:
 - patches array can be empty [] if the fix requires env changes, infra changes, or is non-code (e.g. secret rotation)
+- NEVER create patches for generated files: package-lock.json, yarn.lock, pnpm-lock.yaml, poetry.lock, Gemfile.lock, go.sum, etc.
+- If dependency/lock file issues are the problem, put in fixSummary: "Run 'npm install' (or 'yarn install' / 'pnpm install' / 'poetry install' as appropriate) to regenerate lock files"
 - For flaky tests, suggest adding retry logic or fixing the assertion
 - For type errors, provide the exact corrected types
 - For missing deps, suggest the exact install command in fixSummary

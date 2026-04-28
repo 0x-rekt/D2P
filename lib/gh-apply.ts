@@ -123,8 +123,32 @@ export async function applyAndCreatePR(
     const newBranch = `d2p/pr-${prNumber}-suggestions-${Date.now()}`;
     await createBranch(repoFullName, newBranch, baseSha, accessToken);
 
+    // Filter out generated files that should not be patched
+    const generatedFilePatterns = [
+      /^package-lock\.json$/,
+      /^yarn\.lock$/,
+      /^pnpm-lock\.yaml$/,
+      /^poetry\.lock$/,
+      /^Gemfile\.lock$/,
+      /^go\.sum$/,
+      /^Cargo\.lock$/,
+      /^composer\.lock$/,
+    ];
+
+    const filteredSuggestions = suggestions.filter((s) => {
+      return !generatedFilePatterns.some((pattern) => pattern.test(s.filePath));
+    });
+
+    if (filteredSuggestions.length === 0) {
+      return {
+        success: false,
+        error:
+          "Could not apply any suggestions — all targeted files are auto-generated (lock files). Run dependency install commands to regenerate them.",
+      };
+    }
+
     const byFile = new Map<string, Suggestion[]>();
-    for (const s of suggestions) {
+    for (const s of filteredSuggestions) {
       if (!byFile.has(s.filePath)) byFile.set(s.filePath, []);
       byFile.get(s.filePath)!.push(s);
     }

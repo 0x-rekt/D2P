@@ -12,8 +12,28 @@ export async function GET(
 
   const stream = new ReadableStream({
     async start(controller) {
+      let isClosed = false;
+
+      const closeController = () => {
+        if (!isClosed) {
+          isClosed = true;
+          try {
+            controller.close();
+          } catch {
+            // Controller already closed or closing, ignore
+          }
+        }
+      };
+
       const send = (data: object) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        if (isClosed) return;
+        try {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
+          );
+        } catch {
+          isClosed = true;
+        }
       };
 
       const POLL_INTERVAL = 3000;
@@ -21,10 +41,12 @@ export async function GET(
       const startTime = Date.now();
 
       const poll = async () => {
+        if (isClosed) return;
+
         try {
           if (Date.now() - startTime > MAX_DURATION) {
             send({ status: "timeout" });
-            controller.close();
+            closeController();
             return;
           }
 
@@ -35,7 +57,7 @@ export async function GET(
 
           if (!failure) {
             send({ status: "not_found" });
-            controller.close();
+            closeController();
             return;
           }
 
@@ -45,13 +67,15 @@ export async function GET(
             failure.analysisStatus === "diagnosed" ||
             failure.analysisStatus === "failed"
           ) {
-            controller.close();
+            closeController();
             return;
           }
 
-          setTimeout(poll, POLL_INTERVAL);
+          if (!isClosed) {
+            setTimeout(poll, POLL_INTERVAL);
+          }
         } catch {
-          controller.close();
+          closeController();
         }
       };
 
