@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Activity,
+  ExternalLink,
 } from "lucide-react";
 
 type PageProps = {
@@ -73,7 +74,7 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
 
   const [prResult, ciResult] = await Promise.all([
     getPullRequests(repoId, page, limit),
-    getCiFailures(repoId, 1, 1), // just for the count badge
+    getCiFailures(repoId, 1, 1),
   ]);
 
   const { success, repo, pulls, error, total } = prResult;
@@ -82,14 +83,17 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
   if (!success || !repo) {
     return (
       <section className="flex min-h-screen items-center justify-center bg-black">
-        <div className="text-center">
-          <AlertCircle className="mx-auto mb-4 text-red-500" size={14} />
-          <p className="text-gray-400">{error ?? "Repository not found"}</p>
+        <div className="text-center space-y-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
+            <AlertCircle className="text-red-400" size={22} />
+          </div>
+          <p className="text-gray-400 text-sm">{error ?? "Repository not found"}</p>
           <Link
             href="/dashboard"
-            className="mt-4 inline-block text-sm text-blue-400 hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
           >
-            ← Back to dashboard
+            <ChevronLeft size={13} />
+            Back to dashboard
           </Link>
         </div>
       </section>
@@ -101,77 +105,83 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
   const hasPrevPage = page > 1;
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-black py-16">
-      <div className="absolute left-1/2 top-0 -z-10 h-96 w-150 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
+    <section className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] py-14 sm:py-20">
+      {/* Background glows — matches home page */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-1/4 top-0 -z-10 h-[600px] w-[900px] rounded-full bg-gradient-to-b from-blue-600 to-indigo-600 opacity-[0.15] blur-[140px]" />
+        <div className="absolute bottom-1/4 right-1/4 -z-10 h-[500px] w-[800px] rounded-full bg-gradient-to-t from-purple-600 to-pink-600 opacity-[0.08] blur-[130px]" />
+      </div>
 
-      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        {/* Breadcrumb */}
+        <Link
+          href="/dashboard"
+          className="mb-6 inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-300 transition-colors"
+        >
+          <ChevronLeft size={13} />
+          Dashboard
+        </Link>
+
         {/* Header */}
-        <div className="mb-6 sm:mb-10">
-          <Link
-            href="/dashboard"
-            className="mb-4 sm:mb-6 inline-flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 hover:text-gray-300"
+        <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-2xl font-black tracking-tight text-white sm:text-3xl">
+              {repo.name}
+            </h1>
+            <p className="mt-1 truncate text-xs text-gray-600">{repo.fullName}</p>
+          </div>
+          <a
+            href={repo.htmlUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-gray-400 hover:bg-white/10 hover:text-white transition-all"
           >
-            ← Dashboard
-          </Link>
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div className="min-w-0 flex-1">
-              <h1 className="truncate text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-                {repo.name}
-              </h1>
-              <p className="mt-1 truncate text-xs sm:text-sm text-gray-500">
-                {repo.fullName}
-              </p>
-            </div>
-            <a
-              href={repo.htmlUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-400 hover:bg-white/10 hover:text-white"
-            >
-              View on GitHub ↗
-            </a>
-          </div>
+            <ExternalLink size={12} />
+            View on GitHub
+          </a>
+        </div>
 
-          {/* Tab navigation */}
-          <div className="mt-5 flex items-center gap-2">
-            <span className="flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-400">
-              <GitPullRequest size={14} />
-              Pull Requests
-              {total != null && (
-                <span className="ml-1 rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[10px] text-blue-300">
-                  {total}
-                </span>
-              )}
-            </span>
-            <Link
-              href={`/dashboard/repos/${repoId}/ci`}
-              className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-400 hover:border-red-500/30 hover:bg-red-500/5 hover:text-red-400 transition-colors"
-            >
-              <Activity size={14} />
-              CI Failures
-              {ciTotal > 0 && (
-                <span className="ml-1 rounded-full bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-400">
-                  {ciTotal}
-                </span>
-              )}
-            </Link>
-          </div>
+        {/* Tab navigation */}
+        <div className="mb-8 flex items-center gap-2 border-b border-white/[0.06] pb-4">
+          <span className="flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-400">
+            <GitPullRequest size={13} />
+            Pull Requests
+            {total != null && (
+              <span className="ml-0.5 rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[10px] text-blue-300">
+                {total}
+              </span>
+            )}
+          </span>
+          <Link
+            href={`/dashboard/repos/${repoId}/ci`}
+            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-transparent px-4 py-1.5 text-xs font-medium text-gray-500 hover:border-red-500/30 hover:bg-red-500/[0.08] hover:text-red-400 transition-all"
+          >
+            <Activity size={13} />
+            CI Failures
+            {ciTotal > 0 && (
+              <span className="ml-0.5 rounded-full bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-400">
+                {ciTotal}
+              </span>
+            )}
+          </Link>
         </div>
 
         {/* PR list */}
         {pulls.length === 0 && total === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-white/10 py-24 text-center">
-            <GitPullRequest className="mb-4 text-gray-600" size={14} />
-            <h2 className="mb-2 text-lg font-semibold text-white">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-white/[0.07] bg-white/[0.02] py-24 text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+              <GitPullRequest className="text-gray-600" size={22} />
+            </div>
+            <h2 className="mb-2 text-base font-semibold text-white">
               No pull requests yet
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-gray-500 max-w-xs">
               Open a PR on this repository and AI will automatically review it.
             </p>
           </div>
         ) : (
-          <div className="space-y-2 sm:space-y-3">
-            <p className="mb-3 text-xs sm:mb-4 sm:text-sm text-gray-500">
+          <div className="space-y-2">
+            <p className="mb-4 text-xs text-gray-600">
               {total} pull {total === 1 ? "request" : "requests"}
             </p>
             {pulls.map((pr) => {
@@ -184,32 +194,29 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
                 <Link
                   key={pr.id}
                   href={`/dashboard/repos/${repoId}/pulls/${pr.id}`}
-                  className="group flex flex-col items-start justify-between gap-3 rounded-xl border border-white/10 bg-linear-to-b from-gray-900/50 to-black/50 p-3 sm:p-4 md:p-5 backdrop-blur-sm transition-all hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 md:flex-row md:items-center md:gap-4"
+                  className="group flex flex-col items-start justify-between gap-3 rounded-2xl border border-white/[0.07] bg-gradient-to-b from-zinc-900/50 to-black/50 p-4 backdrop-blur-sm transition-all duration-200 hover:border-blue-500/25 hover:shadow-lg hover:shadow-blue-500/[0.07] md:flex-row md:items-center"
                 >
-                  <div className="flex min-w-0 flex-1 items-start gap-2 sm:gap-3 md:gap-4">
-                    <GitPullRequest
-                      size={30}
-                      className="mt-0.5 shrink-0 text-green-400"
-                    />
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <div className="mt-0.5 shrink-0 flex h-8 w-8 items-center justify-center rounded-lg border border-green-500/20 bg-green-500/10">
+                      <GitPullRequest size={15} className="text-green-400" />
+                    </div>
                     <div className="min-w-0 flex-1">
-                      <p className="line-clamp-2 font-semibold text-white group-hover:text-blue-400 transition-colors text-sm sm:text-base">
+                      <p className="line-clamp-1 text-sm font-semibold text-white group-hover:text-blue-300 transition-colors">
                         {pr.title}
-                        <span className="ml-2 text-xs font-normal text-gray-500 sm:text-sm">
+                        <span className="ml-2 text-xs font-normal text-gray-600">
                           #{pr.prNumber}
                         </span>
                       </p>
-                      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-gray-500 sm:gap-3">
+                      <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-gray-600">
                         <span className="flex items-center gap-1 truncate">
-                          <GitBranch size={14} className="shrink-0" />
+                          <GitBranch size={11} className="shrink-0" />
                           <span className="truncate">{pr.headBranch}</span>
-                          <span className="shrink-0">→</span>
+                          <span>→</span>
                           <span className="truncate">{pr.baseBranch}</span>
                         </span>
-                        <span className="hidden line-clamp-1 sm:inline">
-                          by {pr.authorLogin}
-                        </span>
+                        <span className="hidden sm:inline">by {pr.authorLogin}</span>
                         <span className="flex items-center gap-1">
-                          <Clock size={14} className="shrink-0" />
+                          <Clock size={11} />
                           {new Date(pr.createdAt).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -217,72 +224,58 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
                         </span>
                         {pr._count.suggestions > 0 && (
                           <span className="flex items-center gap-1 text-blue-400">
-                            <Sparkles size={14} className="shrink-0" />
-                            <span className="hidden sm:inline">
-                              {pr._count.suggestions} suggestion
-                              {pr._count.suggestions !== 1 ? "s" : ""}
-                            </span>
-                            <span className="sm:hidden">
-                              {pr._count.suggestions}
-                            </span>
+                            <Sparkles size={11} />
+                            {pr._count.suggestions} suggestion{pr._count.suggestions !== 1 ? "s" : ""}
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="shrink-0 flex items-center gap-2 self-end md:self-center">
+                  <div className="shrink-0 flex items-center gap-2">
                     <Badge
                       variant="outline"
-                      className={`text-xs ${(stateConfig[pr.state as keyof typeof stateConfig] ?? stateConfig.open).class}`}
+                      className={`text-[10px] font-medium ${(stateConfig[pr.state as keyof typeof stateConfig] ?? stateConfig.open).class}`}
                     >
-                      {
-                        (
-                          stateConfig[pr.state as keyof typeof stateConfig] ??
-                          stateConfig.open
-                        ).label
-                      }
+                      {(stateConfig[pr.state as keyof typeof stateConfig] ?? stateConfig.open).label}
                     </Badge>
                     <Badge
                       variant="outline"
-                      className={`gap-1 text-xs md:gap-1.5 md:text-sm ${status.class}`}
+                      className={`gap-1 text-[10px] font-medium ${status.class}`}
                     >
                       <StatusIcon
                         size={10}
-                        className={
-                          pr.reviewStatus === "reviewing" ? "animate-spin" : ""
-                        }
+                        className={pr.reviewStatus === "reviewing" ? "animate-spin" : ""}
                       />
-                      <span className="hidden sm:inline">{status.label}</span>
+                      {status.label}
                     </Badge>
                   </div>
                 </Link>
               );
             })}
 
+            {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row">
-                {hasPrevPage && (
+              <div className="mt-8 flex items-center justify-center gap-3 pt-4">
+                {hasPrevPage ? (
                   <Link
                     href={`?page=${page - 1}`}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs sm:text-sm sm:w-auto text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                    className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-gray-400 hover:bg-white/10 hover:text-white transition-all"
                   >
-                    <ChevronLeft size={14} />
+                    <ChevronLeft size={13} />
                     Previous
                   </Link>
-                )}
-                <span className="text-xs sm:text-sm text-gray-500">
-                  Page {page} of {totalPages}
-                </span>
-                {hasNextPage && (
+                ) : <div className="w-24" />}
+                <span className="text-xs text-gray-600">{page} / {totalPages}</span>
+                {hasNextPage ? (
                   <Link
                     href={`?page=${page + 1}`}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs sm:text-sm sm:w-auto text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                    className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-gray-400 hover:bg-white/10 hover:text-white transition-all"
                   >
                     Next
-                    <ChevronRight size={14} />
+                    <ChevronRight size={13} />
                   </Link>
-                )}
+                ) : <div className="w-16" />}
               </div>
             )}
           </div>

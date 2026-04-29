@@ -1,8 +1,13 @@
 import { getRepositories } from "@/actions/repos";
 import { RepoCard } from "@/components/RepoCard";
-import { Badge } from "@/components/ui/badge";
 import { auth } from "@/lib/auth";
-import { Github, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Github,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+} from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -25,14 +30,14 @@ const Dashboard = async ({ searchParams }: PageProps) => {
 
   if (error) {
     return (
-      <section className="relative min-h-screen overflow-hidden bg-black py-24">
-        <div className="absolute left-1/2 top-0 -z-10 h-150 w-250 -translate-x-1/2 rounded-full bg-red-500/10 blur-[120px]" />
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col items-center justify-center text-center">
-            <AlertCircle className="mb-4 text-red-500" size={48} />
-            <h1 className="mb-4 text-3xl font-bold text-white">Error</h1>
-            <p className="text-gray-400">{error}</p>
+      <section className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] flex items-center justify-center">
+        <div className="pointer-events-none absolute left-1/4 top-0 -z-10 h-[600px] w-[900px] rounded-full bg-gradient-to-b from-red-600 to-red-900 opacity-10 blur-[140px]" />
+        <div className="text-center space-y-4">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
+            <AlertCircle className="text-red-400" size={28} />
           </div>
+          <h1 className="text-2xl font-bold text-white">Something went wrong</h1>
+          <p className="text-gray-500 text-sm max-w-sm">{error}</p>
         </div>
       </section>
     );
@@ -40,19 +45,16 @@ const Dashboard = async ({ searchParams }: PageProps) => {
 
   if (!repositories || repositories.length === 0) {
     return (
-      <section className="relative min-h-screen overflow-hidden bg-black py-24">
-        <div className="absolute left-1/2 top-0 -z-10 h-150 w-250 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col items-center justify-center text-center">
-            <Github className="mb-4 text-gray-600" size={64} />
-            <h1 className="mb-4 text-3xl font-bold text-white">
-              No Repositories Found
-            </h1>
-            <p className="text-gray-400">
-              You don't have any repositories yet. Create one on GitHub to get
-              started.
-            </p>
+      <section className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] flex items-center justify-center">
+        <div className="pointer-events-none absolute left-1/4 top-0 -z-10 h-[600px] w-[900px] rounded-full bg-gradient-to-b from-blue-600 to-indigo-600 opacity-15 blur-[140px]" />
+        <div className="text-center space-y-4">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+            <Github className="text-gray-500" size={28} />
           </div>
+          <h1 className="text-2xl font-bold text-white">No Repositories Found</h1>
+          <p className="text-gray-500 text-sm max-w-sm">
+            You don&apos;t have any repositories yet. Create one on GitHub to get started.
+          </p>
         </div>
       </section>
     );
@@ -63,29 +65,30 @@ const Dashboard = async ({ searchParams }: PageProps) => {
   const hasPrevPage = page > 1;
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-black py-16 sm:py-24">
-      <div className="absolute left-1/2 top-0 -z-10 h-150 w-250 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
+    <section className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] py-16 sm:py-20">
+      {/* Background glows — matches home page */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-1/4 top-0 -z-10 h-[600px] w-[900px] rounded-full bg-gradient-to-b from-blue-600 to-indigo-600 opacity-[0.15] blur-[140px]" />
+        <div className="absolute bottom-1/4 right-1/4 -z-10 h-[500px] w-[800px] rounded-full bg-gradient-to-t from-purple-600 to-pink-600 opacity-[0.08] blur-[130px]" />
+      </div>
 
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 text-center sm:mb-12">
-          <div className="mb-6 flex justify-center">
-            <Badge
-              variant="outline"
-              className="gap-2 border-blue-500/30 bg-blue-500/5 px-3 py-1 text-xs sm:px-4 sm:py-1.5 sm:text-sm text-blue-400 backdrop-blur-sm"
-            >
-              <Github size={14} />
-              <span>GitHub Repositories</span>
-            </Badge>
+        {/* Header */}
+        <div className="mb-10 sm:mb-14 text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-medium text-blue-400">
+            <Github size={13} />
+            GitHub Repositories
           </div>
-          <h1 className="mb-3 bg-linear-to-b from-white to-gray-500 bg-clip-text text-3xl font-extrabold tracking-tighter text-transparent sm:mb-4 sm:text-4xl lg:text-5xl">
+          <h1 className="mb-3 bg-gradient-to-b from-white to-gray-500 bg-clip-text text-4xl font-black tracking-tight text-transparent sm:text-5xl">
             Your Repositories
           </h1>
-          <p className="text-base text-gray-400 sm:text-lg">
+          <p className="text-sm text-gray-500">
             {total} {total === 1 ? "repository" : "repositories"} found
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+        {/* Grid */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-5 lg:gap-6">
           {repositories.map((repo) => (
             <RepoCard
               key={repo.id}
@@ -97,31 +100,31 @@ const Dashboard = async ({ searchParams }: PageProps) => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-12 sm:flex-row">
-            {hasPrevPage && (
+          <div className="mt-10 flex items-center justify-center gap-3">
+            {hasPrevPage ? (
               <Link
                 href={`/dashboard?page=${page - 1}`}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs sm:text-sm sm:w-auto text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-gray-400 hover:bg-white/10 hover:text-white transition-all"
               >
-                <ChevronLeft size={16} />
-                <span className="hidden sm:inline">Previous</span>
-                <span className="sm:hidden">Prev</span>
+                <ChevronLeft size={14} />
+                Previous
               </Link>
+            ) : (
+              <div className="w-24" />
             )}
-
-            <span className="text-xs sm:text-sm text-gray-500">
-              Page {page} of {totalPages}
+            <span className="text-xs text-gray-600">
+              {page} / {totalPages}
             </span>
-
-            {hasNextPage && (
+            {hasNextPage ? (
               <Link
                 href={`/dashboard?page=${page + 1}`}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs sm:text-sm sm:w-auto text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-gray-400 hover:bg-white/10 hover:text-white transition-all"
               >
-                <span className="hidden sm:inline">Next</span>
-                <span className="sm:hidden">Next</span>
-                <ChevronRight size={16} />
+                Next
+                <ChevronRight size={14} />
               </Link>
+            ) : (
+              <div className="w-20" />
             )}
           </div>
         )}

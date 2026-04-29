@@ -1,188 +1,228 @@
 "use client";
 
+import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Sparkles, GitPullRequest, Terminal } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
+import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import SignInBtn from "@/components/SignInBtn";
+import { useSession } from "@/lib/auth-client";
+
+const ThreeDBackground = dynamic(() => import("./ThreeDBackground"), {
+  ssr: false,
+});
 
 const Hero = () => {
   const { data: session } = useSession();
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.2, delayChildren: 0.3 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8 } },
+  };
+
   return (
-    <section className="relative min-h-[90vh] overflow-hidden bg-[#030303] py-24 lg:py-32">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-[10%] left-1/2 h-125 w-200 -translate-x-1/2 rounded-full bg-blue-600/20 blur-[120px]" />
-        <div className="absolute top-[20%] -right-[10%] h-100 w-100 rounded-full bg-indigo-600/10 blur-[100px]" />
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] px-4 pt-24 pb-16 sm:pt-28 sm:pb-20">
+      {/* 3D Background */}
+      <div className="absolute inset-0 opacity-[0.15] pointer-events-none">
+        <ThreeDBackground />
       </div>
 
-      <div className="container relative z-10 mx-auto px-6">
-        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
-          <div className="mb-8 animate-fade-in">
-            <Badge
-              variant="outline"
-              className="gap-2 border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-blue-400 backdrop-blur-md transition-colors hover:border-blue-500/30"
-            >
-              <Sparkles size={14} className="animate-pulse" />
-              <span>Revolutionizing Pull Requests</span>
+      {/* Animated Background Glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], opacity: [0.15, 0.25, 0.15] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-[20%] left-1/4 h-[400px] w-[600px] sm:h-[600px] sm:w-[900px] rounded-full bg-gradient-to-b from-blue-600 to-indigo-600 blur-[120px] sm:blur-[140px]"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-1/4 right-1/4 h-[300px] w-[500px] sm:h-[500px] sm:w-[800px] rounded-full bg-gradient-to-t from-purple-600 to-pink-600 blur-[100px] sm:blur-[130px]"
+        />
+      </div>
+
+      {/* Main layout — stacks on mobile, side-by-side on lg+ */}
+      <div className="container relative z-10 mx-auto max-w-7xl grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+        {/* Left Content */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="text-center lg:text-left space-y-6 sm:space-y-8"
+        >
+          <motion.div variants={itemVariants} className="flex justify-center lg:justify-start">
+            <Badge className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 px-3 py-1.5 sm:px-4 sm:py-2 backdrop-blur-md hover:from-blue-500/30 hover:to-purple-500/30 transition-all text-xs sm:text-sm">
+              <Sparkles size={12} className="mr-1.5 sm:mr-2 animate-pulse" />
+              AI-Engine v2.5 Now Live
             </Badge>
-          </div>
+          </motion.div>
 
-          <div className="grid items-center gap-16 lg:grid-cols-2">
-            <div className="space-y-8">
-              <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
-                Code reviews, <br />
-                <span className="bg-linear-to-r from-blue-400 via-indigo-400 to-blue-600 bg-clip-text text-transparent">
-                  evolved with D2P
+          <motion.h1
+            variants={itemVariants}
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-white leading-[0.95]"
+          >
+            Diff to{" "}
+            <br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-blue-300 via-cyan-300 to-blue-500 bg-clip-text text-transparent animate-pulse">
+              Perfection.
+            </span>
+          </motion.h1>
+
+          <motion.p
+            variants={itemVariants}
+            className="mx-auto lg:mx-0 max-w-md text-base sm:text-lg md:text-xl text-gray-300 font-medium leading-relaxed"
+          >
+            Automate code reviews, fix CI failures, and ship with confidence.
+            AI-powered development that doesn&apos;t just comment—it fixes.
+          </motion.p>
+
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2"
+          >
+            {session ? (
+              <Button
+                size="lg"
+                className="group rounded-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white px-6 sm:px-8 h-12 sm:h-14 font-bold shadow-lg shadow-blue-600/40 transition-all hover:shadow-blue-400/60 hover:scale-105 active:scale-95 text-sm sm:text-base"
+              >
+                <Link href="/dashboard" className="flex items-center gap-2 text-white! no-underline hover:text-white!">
+                  Open Dashboard
+                  <ArrowRight className="group-hover:translate-x-1 transition-transform" size={16} />
+                </Link>
+              </Button>
+            ) : (
+              <SignInBtn />
+            )}
+          </motion.div>
+
+          {/* Stat pills */}
+          <motion.div
+            variants={itemVariants}
+            className="flex w-full flex-wrap justify-center lg:justify-start gap-2 pt-2"
+          >
+            {[
+              { label: "Reviews automated", value: "10x faster" },
+              { label: "CI diagnosis", value: "Instant" },
+              { label: "Setup time", value: "2 min" },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 backdrop-blur-sm"
+              >
+                <span className="text-xs font-bold text-white">{stat.value}</span>
+                <span className="text-[11px] text-gray-500">{stat.label}</span>
+              </div>
+            ))}
+          </motion.div>
+        </motion.div>
+
+        {/* Right Content — full on lg, compact card on mobile */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, ease: "easeOut", delay: 0.4 }}
+          className="relative flex items-center justify-center"
+        >
+          {/* Code visualization — always visible, just scaled for mobile */}
+          <motion.div
+            animate={{ y: [0, -12, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="relative w-full max-w-sm sm:max-w-md lg:max-w-none rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 p-0.5 backdrop-blur-2xl shadow-[0_0_60px_rgba(59,130,246,0.15)] overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10 blur-2xl" />
+
+            <div className="relative rounded-[calc(1.5rem-2px)] sm:rounded-[calc(1.875rem-2px)] overflow-hidden bg-[#0a0e1f]">
+              {/* Title bar */}
+              <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-zinc-800/50 to-zinc-700/30 border-b border-white/5">
+                <div className="flex gap-1.5">
+                  {["bg-red-500", "bg-amber-500", "bg-emerald-500"].map((c) => (
+                    <motion.div
+                      key={c}
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className={`h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full ${c}`}
+                    />
+                  ))}
+                </div>
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-400 font-bold">
+                  Gemini 2.5 · D2P Review
                 </span>
-              </h1>
-
-              <p className="max-w-xl text-lg leading-relaxed text-zinc-400 sm:text-xl">
-                Ship cleaner code faster. D2P acts as an automated senior
-                engineer, auditing your PRs for logic flaws and security risks
-                before they hit production.
-              </p>
-
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
-                {[
-                  {
-                    icon: GitPullRequest,
-                    label: "Real-time PR Audits",
-                    desc: "Instant feedback on every commit.",
-                  },
-                  {
-                    icon: Sparkles,
-                    label: "Contextual AI",
-                    desc: "Suggestions that understand your stack.",
-                  },
-                ].map((feature, i) => (
-                  <div key={i} className="group flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 transition-colors group-hover:border-blue-500/50">
-                      <feature.icon size={20} className="text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-white">{feature.label}</p>
-                      <p className="text-sm text-zinc-500">{feature.desc}</p>
-                    </div>
-                  </div>
-                ))}
               </div>
 
-              <div className="flex flex-col gap-4 sm:flex-row">
-                {session ? (
-                  <Button
-                    size="lg"
-                    className="group h-14 rounded-full bg-blue-600 px-8 text-base font-bold transition-all hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)]"
-                  >
-                    <Link href="/dashboard" className="flex items-center gap-2">
-                      Go to Dashboard{" "}
-                      <ArrowRight
-                        size={18}
-                        className="transition-transform group-hover:translate-x-1"
-                      />
-                    </Link>
-                  </Button>
-                ) : (
-                  <div className="h-14">
-                    <SignInBtn />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="relative group">
-              <div className="absolute -inset-1 rounded-[22px] bg-linear-to-r from-blue-500/20 to-indigo-500/20 blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
-              <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0B0B0C] shadow-2xl transition-transform duration-500 group-hover:scale-[1.01]">
-                <div className="flex items-center justify-between border-b border-white/5 bg-zinc-900/50 px-5 py-4">
-                  <div className="flex gap-2">
-                    <div className="h-3 w-3 rounded-full bg-[#FF5F56]" />
-                    <div className="h-3 w-3 rounded-full bg-[#FFBD2E]" />
-                    <div className="h-3 w-3 rounded-full bg-[#27C93F]" />
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
-                    <Terminal size={14} />
-                    <span>D2P-Agent — pr-review-patch-1</span>
-                  </div>
-                  <div className="w-12" /> {/* Spacer */}
-                </div>
-
-                {/* Content */}
-                <div className="p-6 font-mono text-[13px] leading-relaxed">
-                  <div className="flex gap-4 opacity-50">
-                    <span className="w-4 text-zinc-600">1</span>
-                    <span className="text-zinc-300">
-                      <span className="text-blue-400">import</span>{" "}
-                      {"{ analyze }"}{" "}
-                      <span className="text-blue-400">from</span> "@d2p/core";
-                    </span>
-                  </div>
-                  <div className="flex gap-4">
-                    <span className="w-4 text-zinc-600">2</span>
-                    <span className="text-zinc-300">
-                      <span className="text-blue-400">async function</span>{" "}
-                      <span className="text-yellow-400">initReview</span>(){" "}
-                      {"{"}
-                    </span>
-                  </div>
-                  <div className="flex gap-4 bg-red-500/10">
-                    <span className="w-4 text-red-500/50">-</span>
-                    <span className="text-red-200">
-                      {" "}
-                      const data = fetchApi();
-                    </span>
-                  </div>
-                  <div className="flex gap-4 bg-green-500/10">
-                    <span className="w-4 text-green-500/50">+</span>
-                    <span className="text-green-200">
-                      {" "}
-                      const data = await fetchApi();
-                    </span>
-                  </div>
-                  <div className="flex gap-4">
-                    <span className="w-4 text-zinc-600">5</span>
-                    <span className="text-zinc-300">{"}"}</span>
-                  </div>
-
-                  {/* AI Tooltip Overlay */}
-                  <div className="mt-8 rounded-xl border border-blue-500/40 bg-blue-600/10 p-5 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-blue-400">
-                        <Sparkles size={16} />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">
-                          Optimized suggestion
-                        </span>
-                      </div>
-                      <Badge className="bg-blue-500/20 text-[10px] text-blue-300 border-none hover:bg-blue-500/20">
-                        98% Confidence
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-zinc-200">
-                      Missing <code className="text-blue-300">await</code>{" "}
-                      keyword. This will cause the function to return a Promise
-                      instead of data.
-                    </p>
-                    <div className="mt-4 flex gap-3">
-                      <Button
-                        size="sm"
-                        className="h-8 bg-blue-600 px-4 text-xs font-semibold hover:bg-blue-500"
-                      >
-                        Apply Fix
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 text-xs text-zinc-400 hover:text-white hover:bg-white/5"
-                      >
-                        Ignore
-                      </Button>
-                    </div>
-                  </div>
+              {/* Code body */}
+              <div className="p-4 sm:p-6 font-mono text-xs sm:text-sm space-y-2.5 sm:space-y-3">
+                <motion.div
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="text-zinc-500 flex gap-3 sm:gap-4"
+                >
+                  <span>1</span>
+                  <span>
+                    <span className="text-blue-400">const</span> review ={" "}
+                    <span className="text-yellow-400">await</span> D2P.analyze();
+                  </span>
+                </motion.div>
+                <motion.div
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="bg-red-500/10 text-red-400 px-2.5 sm:px-3 py-1 rounded flex gap-3 sm:gap-4 border border-red-500/20"
+                >
+                  <span className="text-red-300">−</span>
+                  <span>if (error) throw new Error()</span>
+                </motion.div>
+                <motion.div
+                  animate={{ x: [0, -4, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 0.1 }}
+                  className="bg-green-500/10 text-green-400 px-2.5 sm:px-3 py-1 rounded flex gap-3 sm:gap-4 border border-green-500/20"
+                >
+                  <span className="text-green-300">+</span>
+                  <span>if (error) return fix()</span>
+                </motion.div>
+                <div className="text-zinc-500 flex gap-3 sm:gap-4">
+                  <span>4</span>
+                  <span>
+                    <span className="text-purple-400">return</span> review.apply();
+                  </span>
                 </div>
               </div>
+
+              {/* AI suggestion strip */}
+              <div className="border-t border-white/5 bg-gradient-to-r from-blue-600/10 to-purple-600/10 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-blue-300">
+                  <Sparkles size={13} />
+                  <span className="text-[10px] sm:text-xs font-semibold">AI Fix Ready — error handling optimized</span>
+                </div>
+                <button className="rounded-md bg-blue-600 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-blue-500 transition-colors">
+                  Apply
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+
+          {/* Floating badge — only on sm+ so it doesn't overlap on tiny screens */}
+          <motion.div
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+            className="absolute -bottom-4 -right-2 sm:-bottom-8 sm:-right-8 hidden sm:block p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-600/20 to-blue-600/10 backdrop-blur-xl shadow-2xl shadow-blue-600/20 max-w-[180px] sm:max-w-[220px]"
+          >
+            <div className="flex items-center gap-2 text-blue-300 mb-1.5">
+              <Sparkles size={13} />
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase">CI Fixed</span>
+            </div>
+            <p className="text-[10px] sm:text-xs text-zinc-300 leading-relaxed">
+              Workflow failure diagnosed & patch applied automatically.
+            </p>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

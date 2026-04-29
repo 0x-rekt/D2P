@@ -2,7 +2,6 @@
 
 import { connectRepository, disconnectRepository } from "@/actions/repos";
 import { useState, useTransition } from "react";
-import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2, Unplug, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -44,46 +43,43 @@ const ConnectButton = ({ repoId, initialConnected }: ConnectButtonProps) => {
       <div className="flex items-center gap-2">
         {connected ? (
           <>
-            <div className="flex flex-1 items-center gap-1.5 rounded-md border border-green-500/20 bg-green-500/10 px-3 py-1.5">
-              <CheckCircle2 size={13} className="shrink-0 text-green-400" />
-              <span className="text-xs font-semibold text-green-400">
-                Connected
-              </span>
+            {/* Connected status pill */}
+            <div className="flex flex-1 items-center gap-1.5 rounded-lg border border-green-500/20 bg-green-500/10 px-3 py-1.5">
+              <CheckCircle2 size={12} className="shrink-0 text-green-400" />
+              <span className="text-xs font-semibold text-green-400">Connected</span>
             </div>
-            <Button
-              size="sm"
-              variant="ghost"
+            {/* Disconnect icon button */}
+            <button
               onClick={handleDisconnect}
               disabled={isPending}
               title="Disconnect"
-              className="h-8 border hover:cursor-pointer border-white/10 px-2.5 text-gray-500 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
+              className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-gray-500 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400 transition-all disabled:opacity-50 cursor-pointer"
             >
               {isPending ? (
-                <Loader2 size={13} className="animate-spin" />
+                <Loader2 size={12} className="animate-spin" />
               ) : (
-                <Unplug size={13} />
+                <Unplug size={12} />
               )}
-            </Button>
+            </button>
           </>
         ) : (
-          <Button
-            size="sm"
+          <button
             onClick={handleConnect}
             disabled={isPending}
-            className="flex-1 bg-blue-600 font-semibold hover:bg-blue-700 disabled:opacity-60 hover:cursor-pointer disabled:hover:bg-blue-600 disabled:hover:text-white"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:from-blue-500 hover:to-blue-400 transition-all disabled:opacity-60 cursor-pointer shadow-lg shadow-blue-600/20"
           >
             {isPending ? (
               <>
-                <Loader2 size={13} className="animate-spin" />
+                <Loader2 size={12} className="animate-spin" />
                 Connecting…
               </>
             ) : (
               <>
-                <Zap size={13} />
+                <Zap size={12} />
                 Connect
               </>
             )}
-          </Button>
+          </button>
         )}
       </div>
       {error && (
