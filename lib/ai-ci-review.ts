@@ -174,31 +174,40 @@ Rules:
 - originalCode must be the exact string from the file (so it can be automatically applied)
 - Maximum 5 patches`;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: { temperature: 0.1 },
-  });
-
-  const text = response.text ?? "";
-  const cleaned = text
-    .replace(/^```(?:json)?\s*/i, "")
-    .replace(/\s*```\s*$/, "")
-    .trim();
-
   try {
-    const parsed = JSON.parse(cleaned);
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: { temperature: 0.1 },
+    });
+    const text = response.text ?? "";
+    const cleaned = text
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```\s*$/, "")
+      .trim();
+
+    try {
+      const parsed = JSON.parse(cleaned);
+      return {
+        rootCause: parsed.rootCause ?? "Unknown root cause",
+        diagnosis: parsed.diagnosis ?? "Could not diagnose failure",
+        fixSummary: parsed.fixSummary ?? "Manual investigation required",
+        patches: Array.isArray(parsed.patches) ? parsed.patches : [],
+      };
+    } catch {
+      return {
+        rootCause: "AI parsing failed",
+        diagnosis:
+          "The AI returned an unparseable response. Check the logs manually.",
+        fixSummary: "Manual investigation required",
+        patches: [],
+      };
+    }
+  } catch (err) {
+    console.error("[diagnoseCiFailureWithAI] AI call failed:", err);
     return {
-      rootCause: parsed.rootCause ?? "Unknown root cause",
-      diagnosis: parsed.diagnosis ?? "Could not diagnose failure",
-      fixSummary: parsed.fixSummary ?? "Manual investigation required",
-      patches: Array.isArray(parsed.patches) ? parsed.patches : [],
-    };
-  } catch {
-    return {
-      rootCause: "AI parsing failed",
-      diagnosis:
-        "The AI returned an unparseable response. Check the logs manually.",
+      rootCause: "AI analysis failed",
+      diagnosis: `Failed to analyze: ${err instanceof Error ? err.message : "Unknown error"}`,
       fixSummary: "Manual investigation required",
       patches: [],
     };
@@ -217,61 +226,92 @@ export async function analyzeCiFailureWithAI(
   ciFailureId: string,
   userId: string,
 ): Promise<void> {
-  await prisma.ciFailure.update({
-    where: { id: ciFailureId },
-    data: { analysisStatus: "analyzing" },
-  });
-
   try {
-    const ciFailure = await prisma.ciFailure.findUnique({
-      where: { id: ciFailureId },
-      include: { repository: true },
-    });
-
-    if (!ciFailure) return;
-
-    const accessToken = await getAccessToken(userId);
-    if (!accessToken) throw new Error(`No GitHub token for user ${userId}`);
-
-    const [logs, changedFiles] = await Promise.all([
-      fetchWorkflowLogs(
-        ciFailure.repository.fullName,
-        ciFailure.workflowRunId,
-        accessToken,
-      ),
-      fetchChangedFiles(
-        ciFailure.repository.fullName,
-        ciFailure.commitSha,
-        accessToken,
-      ),
-    ]);
-
-    const diagnosis = await diagnoseCiFailureWithAI(
-      logs,
-      changedFiles,
-      ciFailure.repository.fullName,
-      ciFailure.workflowName,
-      ciFailure.branch,
-    );
-
     await prisma.ciFailure.update({
       where: { id: ciFailureId },
-      data: {
-        rootCause: diagnosis.rootCause,
-        diagnosis: diagnosis.diagnosis,
-        fixSummary: diagnosis.fixSummary,
-        suggestedPatch:
-          diagnosis.patches.length > 0
-            ? JSON.stringify(diagnosis.patches)
-            : null,
-        analysisStatus: "diagnosed",
-      },
+      data: { analysisStatus: "analyzing" },
     });
   } catch (err) {
-    console.error("[analyzeCiFailureWithAI] error:", err);
-    await prisma.ciFailure.update({
-      where: { id: ciFailureId },
-      data: { analysisStatus: "failed" },
-    });
+    console.error(
+      "[analyzeCiFailureWithAI] Failed to set analyzing status:",
+      err,
+    );
+    return;
   }
+
+  try {
+    // Wrap entire analysis in timeout (5 minutes max)
+    (await performAnalysis(ciFailureId, userId), 5 * 60 * 1000);
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : "Unknown error";
+    console.error("[analyzeCiFailureWithAI] Analysis failed:", errorMsg);
+
+    // Always update to failed state
+    try {
+      await prisma.ciFailure.update({
+        where: { id: ciFailureId },
+        data: {
+          analysisStatus: "failed",
+          diagnosis: `Analysis failed: ${errorMsg}`,
+        },
+      });
+    } catch (updateErr) {
+      console.error(
+        "[analyzeCiFailureWithAI] Failed to update status to failed:",
+        updateErr,
+      );
+    }
+  }
+}
+
+async function performAnalysis(
+  ciFailureId: string,
+  userId: string,
+): Promise<void> {
+  const ciFailure = await prisma.ciFailure.findUnique({
+    where: { id: ciFailureId },
+    include: { repository: true },
+  });
+
+  if (!ciFailure) {
+    throw new Error(`CI Failure not found: ${ciFailureId}`);
+  }
+
+  const accessToken = await getAccessToken(userId);
+  if (!accessToken) {
+    throw new Error(`No GitHub token for user ${userId}`);
+  }
+
+  const [logs, changedFiles] = await Promise.all([
+    fetchWorkflowLogs(
+      ciFailure.repository.fullName,
+      ciFailure.workflowRunId,
+      accessToken,
+    ),
+    fetchChangedFiles(
+      ciFailure.repository.fullName,
+      ciFailure.commitSha,
+      accessToken,
+    ),
+  ]);
+
+  const diagnosis = await diagnoseCiFailureWithAI(
+    logs,
+    changedFiles,
+    ciFailure.repository.fullName,
+    ciFailure.workflowName,
+    ciFailure.branch,
+  );
+
+  await prisma.ciFailure.update({
+    where: { id: ciFailureId },
+    data: {
+      rootCause: diagnosis.rootCause,
+      diagnosis: diagnosis.diagnosis,
+      fixSummary: diagnosis.fixSummary,
+      suggestedPatch:
+        diagnosis.patches.length > 0 ? JSON.stringify(diagnosis.patches) : null,
+      analysisStatus: "diagnosed",
+    },
+  });
 }

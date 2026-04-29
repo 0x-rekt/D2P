@@ -9,8 +9,9 @@ import {
   Clock,
   Loader2,
   Activity,
-  ExternalLink,
+  ExternalLink as ExternalLinkIcon,
 } from "lucide-react";
+import { ExternalLink } from "@/components/ExternalLink";
 import { CiDiagnosisPanel } from "@/components/CiDiagnosisPanel";
 import { CiStatusWatcher } from "@/components/CiStatusWatcher";
 
@@ -126,15 +127,13 @@ const CiFailureDetailPage = async ({ params }: PageProps) => {
                 </div>
               </div>
             </div>
-            <a
+            <ExternalLink
               href={failure.htmlUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               className="shrink-0 flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-gray-400 hover:bg-white/10 hover:text-white sm:px-3"
             >
-              <ExternalLink size={12} />
+              <ExternalLinkIcon size={12} />
               View Run
-            </a>
+            </ExternalLink>
           </div>
         </div>
 
