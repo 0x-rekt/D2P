@@ -1,4 +1,5 @@
 import { getCiFailures } from "@/actions/ci";
+import { getSecurityFindings } from "@/actions/security";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -12,6 +13,7 @@ import {
   ChevronRight,
   ExternalLink,
   GitPullRequest,
+  Shield,
 } from "lucide-react";
 
 type PageProps = {
@@ -33,6 +35,8 @@ const CiFailuresPage = async ({ params, searchParams }: PageProps) => {
     page,
     limit,
   );
+  const securityFindings = await getSecurityFindings(repoId).catch(() => []);
+  const securityTotal = (securityFindings as any[]).length ?? 0;
 
   if (!success || !repo) {
     return (
@@ -41,7 +45,9 @@ const CiFailuresPage = async ({ params, searchParams }: PageProps) => {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
             <AlertCircle className="text-red-400" size={22} />
           </div>
-          <p className="text-gray-400 text-sm">{error ?? "Repository not found"}</p>
+          <p className="text-gray-400 text-sm">
+            {error ?? "Repository not found"}
+          </p>
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
@@ -85,7 +91,9 @@ const CiFailuresPage = async ({ params, searchParams }: PageProps) => {
                 CI Failures
               </h1>
             </div>
-            <p className="mt-1 truncate text-xs text-gray-600 pl-10">{repo.fullName}</p>
+            <p className="mt-1 truncate text-xs text-gray-600 pl-10">
+              {repo.fullName}
+            </p>
           </div>
           <a
             href={repo.htmlUrl}
@@ -99,15 +107,15 @@ const CiFailuresPage = async ({ params, searchParams }: PageProps) => {
         </div>
 
         {/* Tab navigation */}
-        <div className="mb-8 flex items-center gap-2 border-b border-white/[0.06] pb-4">
+        <div className="mb-8 flex items-center gap-2 border-b border-white/[0.06] pb-4 overflow-x-auto">
           <Link
             href={`/dashboard/repos/${repoId}`}
-            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-transparent px-4 py-1.5 text-xs font-medium text-gray-500 hover:border-blue-500/30 hover:bg-blue-500/[0.08] hover:text-blue-400 transition-all"
+            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-transparent px-4 py-1.5 text-xs font-medium text-gray-500 hover:border-blue-500/30 hover:bg-blue-500/[0.08] hover:text-blue-400 transition-all whitespace-nowrap"
           >
             <GitPullRequest size={13} />
             Pull Requests
           </Link>
-          <span className="flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs font-semibold text-red-400">
+          <span className="flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs font-semibold text-red-400 whitespace-nowrap">
             <Activity size={13} />
             CI Failures
             {(total ?? 0) > 0 && (
@@ -116,6 +124,18 @@ const CiFailuresPage = async ({ params, searchParams }: PageProps) => {
               </span>
             )}
           </span>
+          <Link
+            href={`/dashboard/repos/${repoId}/security`}
+            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-transparent px-4 py-1.5 text-xs font-medium text-gray-500 hover:border-blue-500/30 hover:bg-blue-500/[0.08] hover:text-blue-400 transition-all whitespace-nowrap"
+          >
+            <Shield size={13} />
+            Security
+            {securityTotal > 0 && (
+              <span className="ml-0.5 rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[10px] text-blue-400">
+                {securityTotal}
+              </span>
+            )}
+          </Link>
         </div>
 
         {/* Content */}
@@ -124,7 +144,9 @@ const CiFailuresPage = async ({ params, searchParams }: PageProps) => {
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-green-500/20 bg-green-500/10">
               <CheckCircle2 className="text-green-400" size={22} />
             </div>
-            <h2 className="mb-2 text-base font-semibold text-white">All Green!</h2>
+            <h2 className="mb-2 text-base font-semibold text-white">
+              All Green!
+            </h2>
             <p className="text-xs text-gray-500 max-w-xs">
               No CI failures detected for this repository yet.
             </p>
@@ -161,8 +183,12 @@ const CiFailuresPage = async ({ params, searchParams }: PageProps) => {
                     <ChevronLeft size={13} />
                     Previous
                   </Link>
-                ) : <div className="w-24" />}
-                <span className="text-xs text-gray-600">{page} / {totalPages}</span>
+                ) : (
+                  <div className="w-24" />
+                )}
+                <span className="text-xs text-gray-600">
+                  {page} / {totalPages}
+                </span>
                 {hasNextPage ? (
                   <Link
                     href={`?page=${page + 1}`}
@@ -171,7 +197,9 @@ const CiFailuresPage = async ({ params, searchParams }: PageProps) => {
                     Next
                     <ChevronRight size={13} />
                   </Link>
-                ) : <div className="w-16" />}
+                ) : (
+                  <div className="w-16" />
+                )}
               </div>
             )}
           </div>

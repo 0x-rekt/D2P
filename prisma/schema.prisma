@@ -92,8 +92,10 @@ model Repository {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  pullRequests PullRequest[]
-  ciFailures   CiFailure[]
+  pullRequests     PullRequest[]
+  ciFailures       CiFailure[]
+  securityFindings SecurityFinding[]
+  securityScores   RepositorySecurityScore[]
 
   @@index([userId])
   @@index([repoGithubId])
@@ -124,7 +126,8 @@ model PullRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  suggestions Suggestion[]
+  suggestions      Suggestion[]
+  securityFindings SecurityFinding[]
 
   @@unique([repositoryId, prNumber])
   @@index([repositoryId])
@@ -182,4 +185,69 @@ model CiFailure {
   @@index([repositoryId])
   @@index([analysisStatus])
   @@map("ci_failure")
+}
+
+model SecurityFinding {
+  id             String  @id @default(uuid())
+  prNumber       Int?
+  commitSha      String
+  findingType    String // "secret", "cve", "owasp", "dependency"
+  severity       String // "critical", "high", "medium", "low"
+  title          String
+  description    String
+  cveId          String?
+  cvssScore      Float?
+  packageName    String? // for CVE findings
+  packageVersion String? // for CVE findings
+  filePath       String? // for secrets/code findings
+  lineNumber     Int?
+  fixable        Boolean @default(false)
+  fixType        String? // "secret_rotation", "dependency_upgrade", "code_patch"
+  fixDetails     String? // JSON with upgrade version, patch code, etc.
+
+  status         String  @default("open") // "open", "fixed", "ignored", "false_positive"
+  githubIssueId  Int?
+  gitHubIssueUrl String?
+
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  pullRequestId String?
+  pullRequest   PullRequest? @relation(fields: [pullRequestId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([repositoryId])
+  @@index([prNumber])
+  @@index([status])
+  @@index([severity])
+  @@index([findingType])
+  @@map("security_finding")
+}
+
+model RepositorySecurityScore {
+  id           String     @id @default(uuid())
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  // Score breakdown (0-100)
+  overallScore Int
+  secretScore  Int // No secrets found
+  cveScore     Int // No critical/high CVEs
+  owaslScore   Int // OWASP patterns
+
+  // Metrics
+  criticalFindings Int @default(0)
+  highFindings     Int @default(0)
+  mediumFindings   Int @default(0)
+  lowFindings      Int @default(0)
+
+  // Trend
+  scoredAt      DateTime @default(now())
+  previousScore Int?
+
+  @@unique([repositoryId, scoredAt])
+  @@index([repositoryId])
+  @@map("repository_security_score")
 }

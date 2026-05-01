@@ -1,5 +1,6 @@
 import { getPullRequests } from "@/actions/pulls";
 import { getCiFailures } from "@/actions/ci";
+import { getSecurityFindings } from "@/actions/security";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -18,6 +19,7 @@ import {
   ChevronRight,
   Activity,
   ExternalLink,
+  Shield,
 } from "lucide-react";
 
 type PageProps = {
@@ -72,13 +74,15 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
   const page = Math.max(1, parseInt(pageParam || "1", 10));
   const limit = 10;
 
-  const [prResult, ciResult] = await Promise.all([
+  const [prResult, ciResult, securityResult] = await Promise.all([
     getPullRequests(repoId, page, limit),
     getCiFailures(repoId, 1, 1),
+    getSecurityFindings(repoId).catch(() => []),
   ]);
 
   const { success, repo, pulls, error, total } = prResult;
   const ciTotal = ciResult.total ?? 0;
+  const securityTotal = (securityResult as any[]).length ?? 0;
 
   if (!success || !repo) {
     return (
@@ -87,7 +91,9 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
             <AlertCircle className="text-red-400" size={22} />
           </div>
-          <p className="text-gray-400 text-sm">{error ?? "Repository not found"}</p>
+          <p className="text-gray-400 text-sm">
+            {error ?? "Repository not found"}
+          </p>
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
@@ -128,7 +134,9 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
             <h1 className="truncate text-2xl font-black tracking-tight text-white sm:text-3xl">
               {repo.name}
             </h1>
-            <p className="mt-1 truncate text-xs text-gray-600">{repo.fullName}</p>
+            <p className="mt-1 truncate text-xs text-gray-600">
+              {repo.fullName}
+            </p>
           </div>
           <a
             href={repo.htmlUrl}
@@ -142,8 +150,8 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
         </div>
 
         {/* Tab navigation */}
-        <div className="mb-8 flex items-center gap-2 border-b border-white/[0.06] pb-4">
-          <span className="flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-400">
+        <div className="mb-8 flex items-center gap-2 border-b border-white/[0.06] pb-4 overflow-x-auto">
+          <span className="flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-400 whitespace-nowrap">
             <GitPullRequest size={13} />
             Pull Requests
             {total != null && (
@@ -154,13 +162,25 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
           </span>
           <Link
             href={`/dashboard/repos/${repoId}/ci`}
-            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-transparent px-4 py-1.5 text-xs font-medium text-gray-500 hover:border-red-500/30 hover:bg-red-500/[0.08] hover:text-red-400 transition-all"
+            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-transparent px-4 py-1.5 text-xs font-medium text-gray-500 hover:border-red-500/30 hover:bg-red-500/[0.08] hover:text-red-400 transition-all whitespace-nowrap"
           >
             <Activity size={13} />
             CI Failures
             {ciTotal > 0 && (
               <span className="ml-0.5 rounded-full bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-400">
                 {ciTotal}
+              </span>
+            )}
+          </Link>
+          <Link
+            href={`/dashboard/repos/${repoId}/security`}
+            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-transparent px-4 py-1.5 text-xs font-medium text-gray-500 hover:border-blue-500/30 hover:bg-blue-500/[0.08] hover:text-blue-400 transition-all whitespace-nowrap"
+          >
+            <Shield size={13} />
+            Security
+            {securityTotal > 0 && (
+              <span className="ml-0.5 rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[10px] text-blue-400">
+                {securityTotal}
               </span>
             )}
           </Link>
@@ -214,7 +234,9 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
                           <span>→</span>
                           <span className="truncate">{pr.baseBranch}</span>
                         </span>
-                        <span className="hidden sm:inline">by {pr.authorLogin}</span>
+                        <span className="hidden sm:inline">
+                          by {pr.authorLogin}
+                        </span>
                         <span className="flex items-center gap-1">
                           <Clock size={11} />
                           {new Date(pr.createdAt).toLocaleDateString("en-US", {
@@ -225,7 +247,8 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
                         {pr._count.suggestions > 0 && (
                           <span className="flex items-center gap-1 text-blue-400">
                             <Sparkles size={11} />
-                            {pr._count.suggestions} suggestion{pr._count.suggestions !== 1 ? "s" : ""}
+                            {pr._count.suggestions} suggestion
+                            {pr._count.suggestions !== 1 ? "s" : ""}
                           </span>
                         )}
                       </div>
@@ -237,7 +260,12 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
                       variant="outline"
                       className={`text-[10px] font-medium ${(stateConfig[pr.state as keyof typeof stateConfig] ?? stateConfig.open).class}`}
                     >
-                      {(stateConfig[pr.state as keyof typeof stateConfig] ?? stateConfig.open).label}
+                      {
+                        (
+                          stateConfig[pr.state as keyof typeof stateConfig] ??
+                          stateConfig.open
+                        ).label
+                      }
                     </Badge>
                     <Badge
                       variant="outline"
@@ -245,7 +273,9 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
                     >
                       <StatusIcon
                         size={10}
-                        className={pr.reviewStatus === "reviewing" ? "animate-spin" : ""}
+                        className={
+                          pr.reviewStatus === "reviewing" ? "animate-spin" : ""
+                        }
                       />
                       {status.label}
                     </Badge>
@@ -265,8 +295,12 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
                     <ChevronLeft size={13} />
                     Previous
                   </Link>
-                ) : <div className="w-24" />}
-                <span className="text-xs text-gray-600">{page} / {totalPages}</span>
+                ) : (
+                  <div className="w-24" />
+                )}
+                <span className="text-xs text-gray-600">
+                  {page} / {totalPages}
+                </span>
                 {hasNextPage ? (
                   <Link
                     href={`?page=${page + 1}`}
@@ -275,7 +309,9 @@ const RepoPage = async ({ params, searchParams }: PageProps) => {
                     Next
                     <ChevronRight size={13} />
                   </Link>
-                ) : <div className="w-16" />}
+                ) : (
+                  <div className="w-16" />
+                )}
               </div>
             )}
           </div>

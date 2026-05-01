@@ -1,4 +1,12 @@
 import { analyzePullRequestWithAI } from "@/lib/ai-review";
+import { runSecurityScan } from "@/lib/security-scanner";
+import {
+  createCommitStatus,
+  postSecurityComment,
+  formatSecurityFindingsForGitHub,
+  generateSeverityLabels,
+} from "@/lib/github-security";
+import { getGitHubAccessToken } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 import { createHmac, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
@@ -165,6 +173,60 @@ export const POST = async (req: NextRequest) => {
   await analyzePullRequestWithAI(pullRequest.id, repo.userId).catch((error) => {
     console.error("Error analyzing pull request:", error);
   });
+
+  // Run security scan
+  try {
+    const accessToken = await getGitHubAccessToken(repo.userId);
+    if (accessToken) {
+      const securityResult = await runSecurityScan(
+        repo.id,
+        pr.number,
+        accessToken,
+        repo.fullName,
+      );
+
+      // Block merge if critical findings
+      if (securityResult.shouldBlockMerge) {
+        await createCommitStatus(accessToken, repo.fullName, {
+          name: "D2P Security Scan",
+          headSha: pr.head.sha,
+          status: "completed",
+          conclusion: "failure",
+          title: "Security Findings Detected",
+          summary: `Found ${securityResult.criticalFindings} critical, ${securityResult.highFindings} high, ${securityResult.mediumFindings} medium findings`,
+          details: formatSecurityFindingsForGitHub({
+            critical: securityResult.criticalFindings,
+            high: securityResult.highFindings,
+            medium: securityResult.mediumFindings,
+            low: securityResult.lowFindings,
+            details: securityResult.findings,
+          }),
+          prNumber: pr.number,
+        }).catch((error) => {
+          console.error("Error creating commit status:", error);
+        });
+
+        // Post comment with findings
+        await postSecurityComment(
+          accessToken,
+          repo.fullName,
+          pr.number,
+          formatSecurityFindingsForGitHub({
+            critical: securityResult.criticalFindings,
+            high: securityResult.highFindings,
+            medium: securityResult.mediumFindings,
+            low: securityResult.lowFindings,
+            details: securityResult.findings,
+          }),
+        ).catch((error) => {
+          console.error("Error posting security comment:", error);
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error running security scan:", error);
+    // Don't fail the webhook if security scan fails
+  }
 
   return NextResponse.json({ success: true, pullRequestId: pullRequest.id });
 };
