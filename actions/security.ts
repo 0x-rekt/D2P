@@ -119,7 +119,6 @@ export const getRepositorySecurityTrend = async (repoId: string) => {
       throw new Error("Unauthorized");
     }
 
-    // Verify user owns the repository
     const repo = await prisma.repository.findFirst({
       where: {
         id: repoId,
@@ -131,13 +130,42 @@ export const getRepositorySecurityTrend = async (repoId: string) => {
       throw new Error("Repository not found");
     }
 
-    const scores = await prisma.repositorySecurityScore.findMany({
-      where: { repositoryId: repoId },
-      orderBy: { scoredAt: "desc" },
-      take: 30,
-    });
+    const dailyScores = await prisma.$queryRaw<
+      Array<{
+        id: string;
+        repositoryId: string;
+        overallScore: number;
+        secretScore: number;
+        cveScore: number;
+        owaslScore: number;
+        criticalFindings: number;
+        highFindings: number;
+        mediumFindings: number;
+        lowFindings: number;
+        scoredAt: Date;
+        previousScore: number | null;
+      }>
+    >`
+      SELECT DISTINCT ON (DATE("scoredAt"))
+        id,
+        "repositoryId",
+        "overallScore",
+        "secretScore",
+        "cveScore",
+        "owaslScore",
+        "criticalFindings",
+        "highFindings",
+        "mediumFindings",
+        "lowFindings",
+        "scoredAt",
+        "previousScore"
+      FROM "repository_security_score"
+      WHERE "repositoryId" = ${repoId}
+      ORDER BY DATE("scoredAt") DESC, "scoredAt" DESC
+      LIMIT 30
+    `;
 
-    return scores.reverse();
+    return dailyScores.reverse();
   } catch (error) {
     console.error("Error fetching security trends:", error);
     throw error;
@@ -154,7 +182,6 @@ export const getCurrentSecurityScore = async (repoId: string) => {
       throw new Error("Unauthorized");
     }
 
-    // Verify user owns the repository
     const repo = await prisma.repository.findFirst({
       where: {
         id: repoId,

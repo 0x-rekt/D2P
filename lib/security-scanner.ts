@@ -1,7 +1,10 @@
 import prisma from "@/lib/prisma";
 import axios from "axios";
 import { scanDiffForSecrets } from "@/lib/secrets-scanner";
-import { scanDependenciesForCVEs } from "@/lib/cve-query";
+import {
+  scanDependenciesForCVEs,
+  calculateComprehensiveSecurityScore,
+} from "@/lib/cve-query";
 import { scanDiffForOWASP } from "@/lib/owasp-scanner";
 import {
   verifyOWASPFindingsWithAI,
@@ -126,7 +129,14 @@ export const runSecurityScan = async (
     findingsBySeverity,
   );
 
-  await updateRepositorySecurityScore(repoId, findingsBySeverity);
+  await updateRepositorySecurityScore(repoId, {
+    secrets: secretFindings,
+    cves: cveFindings.map((cve) => ({
+      severity: cve.severity,
+      cvssScore: cve.cvssScore,
+    })),
+    owasp: correlatedOWASPFindings,
+  });
 
   const result: SecurityScanResult = {
     prNumber,
@@ -335,33 +345,78 @@ async function storeSecurityFindings(
 
 async function updateRepositorySecurityScore(
   repoId: string,
-  counts: { critical: number; high: number; medium: number; low: number },
+  findings: {
+    secrets: Array<{ severity: "critical" | "high"; description: string }>;
+    cves: Array<{
+      severity: "critical" | "high" | "medium" | "low";
+      cvssScore: number;
+    }>;
+    owasp: Array<{
+      severity: "critical" | "high" | "medium";
+      cvssScore?: number;
+    }>;
+  },
 ) {
   try {
-    const score =
-      100 -
-      counts.critical * 30 -
-      counts.high * 15 -
-      counts.medium * 5 -
-      counts.low * 1;
+    const scoreBreakdown = calculateComprehensiveSecurityScore({
+      secrets: findings.secrets,
+      cves: findings.cves,
+      owasp: findings.owasp,
+    });
 
-    await prisma.repositorySecurityScore.create({
-      data: {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const existingScore = await prisma.repositorySecurityScore.findFirst({
+      where: {
         repositoryId: repoId,
-        overallScore: Math.max(0, score),
-        secretScore: 100, // Will be refined based on actual findings
-        cveScore: 100,
-        owaslScore: 100,
-        criticalFindings: counts.critical,
-        highFindings: counts.high,
-        mediumFindings: counts.medium,
-        lowFindings: counts.low,
+        scoredAt: {
+          gte: today,
+          lt: tomorrow,
+        },
       },
     });
 
-    console.log(
-      `[Security Scan] Updated security score for repo ${repoId}: ${Math.max(0, score)}`,
-    );
+    if (existingScore) {
+      await prisma.repositorySecurityScore.update({
+        where: { id: existingScore.id },
+        data: {
+          overallScore: scoreBreakdown.overallScore,
+          secretScore: scoreBreakdown.secretScore,
+          cveScore: scoreBreakdown.cveScore,
+          owaslScore: scoreBreakdown.owaspScore,
+          criticalFindings: scoreBreakdown.criticalFindings,
+          highFindings: scoreBreakdown.highFindings,
+          mediumFindings: scoreBreakdown.mediumFindings,
+          lowFindings: scoreBreakdown.lowFindings,
+          previousScore: existingScore.overallScore,
+        },
+      });
+
+      console.log(
+        `[Security Scan] Updated today's security score for repo ${repoId}: overall=${scoreBreakdown.overallScore} secret=${scoreBreakdown.secretScore} cve=${scoreBreakdown.cveScore} owasp=${scoreBreakdown.owaspScore}`,
+      );
+    } else {
+      await prisma.repositorySecurityScore.create({
+        data: {
+          repositoryId: repoId,
+          overallScore: scoreBreakdown.overallScore,
+          secretScore: scoreBreakdown.secretScore,
+          cveScore: scoreBreakdown.cveScore,
+          owaslScore: scoreBreakdown.owaspScore,
+          criticalFindings: scoreBreakdown.criticalFindings,
+          highFindings: scoreBreakdown.highFindings,
+          mediumFindings: scoreBreakdown.mediumFindings,
+          lowFindings: scoreBreakdown.lowFindings,
+        },
+      });
+
+      console.log(
+        `[Security Scan] Created new security score for repo ${repoId}: overall=${scoreBreakdown.overallScore} secret=${scoreBreakdown.secretScore} cve=${scoreBreakdown.cveScore} owasp=${scoreBreakdown.owaspScore}`,
+      );
+    }
   } catch (error) {
     console.error(`Failed to update security score:`, error);
   }

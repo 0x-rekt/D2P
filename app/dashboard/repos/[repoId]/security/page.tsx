@@ -2,6 +2,8 @@ import {
   getSecurityFindings,
   getCurrentSecurityScore,
 } from "@/actions/security";
+import { SecurityFixPrButton } from "@/components/SecurityFixPrButton";
+import { SecurityStatusWatcher } from "@/components/SecurityStatusWatcher";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -36,6 +38,11 @@ interface SecurityFinding {
   status: "open" | "fixed" | "ignored" | "false_positive";
   createdAt: Date;
   pullRequestId?: string;
+  fixable?: boolean;
+  fixType?: string | null;
+  fixDetails?: string | null;
+  packageName?: string | null;
+  packageVersion?: string | null;
   pullRequest?: {
     prNumber: number;
     title: string;
@@ -85,6 +92,9 @@ const SecurityInsightsPage = async ({ params, searchParams }: PageProps) => {
 
     const findings = (findingsData as SecurityFinding[]) || [];
     const score = (scoreData as SecurityScore | null) || null;
+    const fixableDependencyFindingIds = findings
+      .filter((finding) => finding.findingType === "cve" && finding.fixable)
+      .map((finding) => finding.id);
 
     // Get repo info from first finding or fallback
     const repoName = findings[0]?.pullRequest?.title || "Repository";
@@ -120,6 +130,12 @@ const SecurityInsightsPage = async ({ params, searchParams }: PageProps) => {
 
     return (
       <section className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] py-14 sm:py-20">
+        <SecurityStatusWatcher
+          repoId={repoId}
+          initialScoredAt={
+            score?.scoredAt ? new Date(score.scoredAt).toISOString() : null
+          }
+        />
         {/* Background glows */}
         <div className="pointer-events-none absolute left-1/4 top-0 -z-10 h-[600px] w-[900px] rounded-full bg-gradient-to-b from-blue-600 to-blue-900 opacity-10 blur-[140px]" />
         <div className="pointer-events-none absolute bottom-1/4 right-1/4 -z-10 h-[500px] w-[800px] rounded-full bg-gradient-to-t from-blue-600 to-purple-600 opacity-[0.07] blur-[130px]" />
@@ -150,6 +166,15 @@ const SecurityInsightsPage = async ({ params, searchParams }: PageProps) => {
               </p>
             </div>
           </div>
+
+          {fixableDependencyFindingIds.length > 0 && (
+            <div className="mb-8">
+              <SecurityFixPrButton
+                repoId={repoId}
+                findingIds={fixableDependencyFindingIds}
+              />
+            </div>
+          )}
 
           {/* Security Score Cards */}
           {score && (
