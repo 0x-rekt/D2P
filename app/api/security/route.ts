@@ -5,13 +5,6 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
-/**
- * POST /api/security/create-issue
- * Create a GitHub issue for security findings
- *
- * Note: Security scanning is now handled automatically via GitHub webhooks
- * when pull requests are opened or updated.
- */
 export const POST = async (req: NextRequest) => {
   try {
     const session = await auth.api.getSession({

@@ -4,9 +4,6 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
-/**
- * Get all security findings for a repository
- */
 export const getSecurityFindings = async (repoId: string) => {
   try {
     const session = await auth.api.getSession({
@@ -24,10 +21,7 @@ export const getSecurityFindings = async (repoId: string) => {
           userId: session.user.id,
         },
       },
-      orderBy: [
-        { severity: "asc" }, // critical first
-        { createdAt: "desc" },
-      ],
+      orderBy: [{ severity: "asc" }, { createdAt: "desc" }],
       include: {
         pullRequest: {
           select: {
@@ -46,9 +40,6 @@ export const getSecurityFindings = async (repoId: string) => {
   }
 };
 
-/**
- * Get security findings for a specific PR
- */
 export const getSecurityFindingsForPR = async (
   repoId: string,
   prNumber: number,
@@ -80,9 +71,6 @@ export const getSecurityFindingsForPR = async (
   }
 };
 
-/**
- * Update security finding status
- */
 export const updateSecurityFindingStatus = async (
   findingId: string,
   status: "open" | "fixed" | "ignored" | "false_positive",
@@ -96,7 +84,6 @@ export const updateSecurityFindingStatus = async (
       throw new Error("Unauthorized");
     }
 
-    // Verify user owns the repository
     const finding = await prisma.securityFinding.findUnique({
       where: { id: findingId },
       include: {
@@ -122,9 +109,6 @@ export const updateSecurityFindingStatus = async (
   }
 };
 
-/**
- * Get repository security score trends
- */
 export const getRepositorySecurityTrend = async (repoId: string) => {
   try {
     const session = await auth.api.getSession({
@@ -150,19 +134,16 @@ export const getRepositorySecurityTrend = async (repoId: string) => {
     const scores = await prisma.repositorySecurityScore.findMany({
       where: { repositoryId: repoId },
       orderBy: { scoredAt: "desc" },
-      take: 30, // Last 30 scores
+      take: 30,
     });
 
-    return scores.reverse(); // Return in chronological order
+    return scores.reverse();
   } catch (error) {
     console.error("Error fetching security trends:", error);
     throw error;
   }
 };
 
-/**
- * Get current security score for a repository
- */
 export const getCurrentSecurityScore = async (repoId: string) => {
   try {
     const session = await auth.api.getSession({
@@ -197,9 +178,6 @@ export const getCurrentSecurityScore = async (repoId: string) => {
   }
 };
 
-/**
- * Get summary of security findings by type
- */
 export const getSecurityFindingsSummary = async (repoId: string) => {
   try {
     const session = await auth.api.getSession({
@@ -210,7 +188,6 @@ export const getSecurityFindingsSummary = async (repoId: string) => {
       throw new Error("Unauthorized");
     }
 
-    // Verify user owns the repository
     const repo = await prisma.repository.findFirst({
       where: {
         id: repoId,
@@ -222,7 +199,6 @@ export const getSecurityFindingsSummary = async (repoId: string) => {
       throw new Error("Repository not found");
     }
 
-    // Count findings by type and severity
     const openFindings = await prisma.securityFinding.groupBy({
       by: ["findingType", "severity"],
       where: {
@@ -242,16 +218,13 @@ export const getSecurityFindingsSummary = async (repoId: string) => {
     };
 
     for (const group of openFindings) {
-      // Count by type
       summary.byType[group.findingType] =
         (summary.byType[group.findingType] || 0) + group._count;
 
-      // Count by severity
       summary.bySeverity[group.severity] =
         (summary.bySeverity[group.severity] || 0) + group._count;
     }
 
-    // Count fixable findings
     const fixableCount = await prisma.securityFinding.count({
       where: {
         repositoryId: repoId,
@@ -273,9 +246,6 @@ export const getSecurityFindingsSummary = async (repoId: string) => {
   }
 };
 
-/**
- * Mark fixable security findings as fixed after auto-fix PR is created
- */
 export const markFixableSecurityFindingsAsFixed = async (
   repoId: string,
   fixType: "secret_rotation" | "dependency_upgrade",
@@ -289,7 +259,6 @@ export const markFixableSecurityFindingsAsFixed = async (
       throw new Error("Unauthorized");
     }
 
-    // Verify user owns the repository
     const repo = await prisma.repository.findFirst({
       where: {
         id: repoId,

@@ -11,7 +11,6 @@ export type OWASPFinding = {
 
 // OWASP Top 10 vulnerability patterns
 const OWASP_PATTERNS = {
-  // A01: Broken Access Control
   hardcoded_role_check: {
     pattern:
       /if\s*\(\s*user\.role\s*===\s*['"]admin['"]\s*\)|role\s*==\s*['"]admin['"]/gi,
@@ -26,7 +25,6 @@ const OWASP_PATTERNS = {
     ],
   },
 
-  // A02: Cryptographic Failures
   weak_hash: {
     pattern:
       /MD5|SHA1|\bmd5\(|\bsha1\(|crypto\.createHash\(['"]md5['"]|crypto\.createHash\(['"]sha1['"]\)/gi,
@@ -41,7 +39,6 @@ const OWASP_PATTERNS = {
     ],
   },
 
-  // A03: Injection
   sql_concatenation: {
     pattern:
       /query\s*\(\s*['"`].*?['"`]\s*\+|SELECT.*?\+|INSERT.*?\+|UPDATE.*?\+|DELETE.*?\+|\bsql\s*\+/gi,
@@ -71,7 +68,6 @@ const OWASP_PATTERNS = {
     ],
   },
 
-  // A04: Insecure Design
   no_rate_limiting: {
     pattern:
       /\/api\/.*?route\.ts|export\s+(async\s+)?function\s+(POST|GET|PUT|DELETE)/gi,
@@ -85,7 +81,6 @@ const OWASP_PATTERNS = {
     ],
   },
 
-  // A05: Broken Access Control
   no_input_validation: {
     pattern: /req\.body|req\.query|req\.params(?!\s*(\.[\w]+\s*)?[=!<>])/gi,
     severity: "high" as const,
@@ -98,7 +93,6 @@ const OWASP_PATTERNS = {
     ],
   },
 
-  // A07: Identification and Authentication Failures
   plain_text_password: {
     pattern: /password\s*[=:]\s*['"]([^'"]{6,})['"]\s*(?:;|,|\n)/gi,
     severity: "critical" as const,
@@ -111,7 +105,6 @@ const OWASP_PATTERNS = {
     ],
   },
 
-  // A09: Security Logging and Monitoring Failures
   no_error_logging: {
     pattern:
       /catch\s*\(\s*\w+\s*\)\s*\{(?!\s*(console\.|logger\.|log\(|throw))/gi,
@@ -125,7 +118,6 @@ const OWASP_PATTERNS = {
     ],
   },
 
-  // Common vulnerability patterns
   eval_usage: {
     pattern: /\beval\s*\(|\bnew\s+Function\s*\(/gi,
     severity: "critical" as const,
@@ -152,7 +144,6 @@ const OWASP_PATTERNS = {
     ],
   },
 
-  // A06: Vulnerable and Outdated Components
   no_dependency_check: {
     pattern: /import\s+.*\s+from\s+['"](.*?)['"];/gi,
     severity: "medium" as const,
@@ -166,9 +157,6 @@ const OWASP_PATTERNS = {
   },
 };
 
-/**
- * Scan code for OWASP vulnerability patterns
- */
 export const scanForOWASPPatterns = (
   content: string,
   filePath?: string,
@@ -202,9 +190,6 @@ export const scanForOWASPPatterns = (
   return findings;
 };
 
-/**
- * Scan a GitHub PR diff for OWASP patterns
- */
 export const scanDiffForOWASP = (
   diff: string,
 ): Array<OWASPFinding & { filePath: string; lineNumber: number }> => {
@@ -217,7 +202,6 @@ export const scanDiffForOWASP = (
   let addedLineNumber = 0;
 
   lines.forEach((line) => {
-    // Track current file
     if (line.startsWith("+++") || line.startsWith("---")) {
       currentFile = line.replace(/^[+-]{3}\s+[ab]\//, "").trim();
       if (shouldSkipOWASPFile(currentFile)) {
@@ -226,7 +210,6 @@ export const scanDiffForOWASP = (
       addedLineNumber = 0;
     }
 
-    // Only scan added lines
     if (line.startsWith("+") && !line.startsWith("+++") && currentFile) {
       const contentLine = line.substring(1);
       addedLineNumber++;
@@ -245,32 +228,14 @@ export const scanDiffForOWASP = (
   return findings;
 };
 
-/**
- * Cross-reference OWASP findings with CVE data
- * For example, if SQL injection found, check if the ORM version patches it
- */
 export const correlateOWASPWithCVE = (
   owaslFindings: OWASPFinding[],
   cveFindings: any[],
 ): Array<OWASPFinding & { relatedCVEs?: any[] }> => {
-  return owaslFindings.map((finding) => {
-    // Match SQL injection findings with database library CVEs
-    if (
-      finding.title.includes("SQL Injection") &&
-      cveFindings.some((cve) =>
-        cve.packageName.toLowerCase().match(/sql|db|orm|prisma|sequelize/i),
-      )
-    ) {
-      return {
-        ...finding,
-        relatedCVEs: cveFindings.filter((cve) =>
-          cve.packageName.toLowerCase().match(/sql|db|orm|prisma|sequelize/i),
-        ),
-      };
-    }
-
-    return finding;
-  });
+  return owaslFindings.map((finding) => ({
+    ...finding,
+    relatedCVEs: [],
+  }));
 };
 
 function shouldSkipOWASPFile(filePath: string): boolean {

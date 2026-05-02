@@ -174,7 +174,6 @@ export const POST = async (req: NextRequest) => {
     console.error("Error analyzing pull request:", error);
   });
 
-  // Run security scan
   try {
     const accessToken = await getGitHubAccessToken(repo.userId);
     if (accessToken) {
@@ -185,7 +184,6 @@ export const POST = async (req: NextRequest) => {
         repo.fullName,
       );
 
-      // Block merge if critical findings
       if (securityResult.shouldBlockMerge) {
         await createCommitStatus(accessToken, repo.fullName, {
           name: "D2P Security Scan",

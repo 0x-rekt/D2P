@@ -2,7 +2,12 @@ import prisma from "@/lib/prisma";
 import axios from "axios";
 import { scanDiffForSecrets } from "@/lib/secrets-scanner";
 import { scanDependenciesForCVEs } from "@/lib/cve-query";
-import { scanDiffForOWASP, correlateOWASPWithCVE } from "@/lib/owasp-scanner";
+import { scanDiffForOWASP } from "@/lib/owasp-scanner";
+import {
+  verifyOWASPFindingsWithAI,
+  filterVerifiedFindings,
+  correlateOWASPWithCVEUsingAI,
+} from "@/lib/ai-security-review";
 
 export type SecurityScanResult = {
   prNumber: number;
@@ -21,10 +26,6 @@ export type SecurityScanResult = {
   timestamp: Date;
 };
 
-/**
- * Main security scanning agent - orchestrates all security checks
- * Called when PR is opened or synchronized
- */
 export const runSecurityScan = async (
   repoId: string,
   prNumber: number,
@@ -33,21 +34,17 @@ export const runSecurityScan = async (
 ): Promise<SecurityScanResult> => {
   console.log(`[Security Scan] Starting scan for ${repoFullName}#${prNumber}`);
 
-  // Step 1: Fetch diff
   const diff = await fetchDiff(accessToken, repoFullName, prNumber);
 
-  // Step 2: Fetch package.json content
   const packageJsonContent = await fetchPackageJson(
     accessToken,
     repoFullName,
     prNumber,
   );
 
-  // Step 3: Scan for secrets
   console.log(`[Security Scan] Scanning for secrets...`);
   const secretFindings = scanDiffForSecrets(diff);
 
-  // Step 4: Scan dependencies for CVEs
   console.log(`[Security Scan] Scanning dependencies for CVEs...`);
   let cveFindings: any[] = [];
   if (packageJsonContent) {
@@ -69,19 +66,36 @@ export const runSecurityScan = async (
     }));
   }
 
-  // Step 5: Scan for OWASP patterns
   console.log(`[Security Scan] Scanning for OWASP patterns...`);
   const owaspPatterns = scanDiffForOWASP(diff);
 
-  // Step 6: Cross-reference findings (e.g., SQL injection with ORM CVEs)
-  console.log(`[Security Scan] Correlating OWASP findings with CVEs...`);
-  const correlatedFindings = correlateOWASPWithCVE(owaspPatterns, cveFindings);
+  console.log(
+    `[Security Scan] Verifying OWASP findings with AI (${owaspPatterns.length} candidates)...`,
+  );
+  const verifiedFindings = await verifyOWASPFindingsWithAI(owaspPatterns, diff);
+  const filteredOWASPFindings = filterVerifiedFindings(verifiedFindings, 0.6);
 
-  // Step 7: Count findings by severity
+  console.log(
+    `[Security Scan] AI verification reduced OWASP findings from ${owaspPatterns.length} to ${filteredOWASPFindings.length}`,
+  );
+
+  console.log(
+    `[Security Scan] Correlating verified OWASP findings with CVEs using AI...`,
+  );
+  const correlatedOWASPFindings = await correlateOWASPWithCVEUsingAI(
+    filteredOWASPFindings,
+    cveFindings,
+    diff,
+  );
+
+  console.log(
+    `[Security Scan] Identified ${correlatedOWASPFindings.filter((f) => f.relatedCVEs && f.relatedCVEs.length > 0).length} verified OWASP findings with related CVEs`,
+  );
+
   const findingsBySeverity = countFindingsBySeverity({
     secrets: secretFindings,
     cves: cveFindings,
-    owaslPatterns: correlatedFindings,
+    owaslPatterns: correlatedOWASPFindings,
   });
 
   const totalFindings =
@@ -90,7 +104,6 @@ export const runSecurityScan = async (
     findingsBySeverity.medium +
     findingsBySeverity.low;
 
-  // Step 8: Determine if merge should be blocked
   const shouldBlockMerge =
     findingsBySeverity.critical > 0 ||
     cveFindings.some(
@@ -102,19 +115,17 @@ export const runSecurityScan = async (
   );
   console.log(`[Security Scan] Merge should be blocked: ${shouldBlockMerge}`);
 
-  // Step 9: Store findings in database
   await storeSecurityFindings(
     repoId,
     prNumber,
     {
       secrets: secretFindings,
       cves: cveFindings,
-      owaslPatterns: correlatedFindings,
+      owaslPatterns: correlatedOWASPFindings,
     },
     findingsBySeverity,
   );
 
-  // Step 10: Update repository security score
   await updateRepositorySecurityScore(repoId, findingsBySeverity);
 
   const result: SecurityScanResult = {
@@ -129,7 +140,7 @@ export const runSecurityScan = async (
     findings: {
       secrets: secretFindings,
       cves: cveFindings,
-      owaslPatterns: correlatedFindings,
+      owaslPatterns: correlatedOWASPFindings,
     },
     timestamp: new Date(),
   };
@@ -137,9 +148,6 @@ export const runSecurityScan = async (
   return result;
 };
 
-/**
- * Fetch PR diff from GitHub
- */
 async function fetchDiff(
   accessToken: string,
   repoFullName: string,
@@ -167,16 +175,12 @@ async function fetchDiff(
   }
 }
 
-/**
- * Fetch package.json from the PR branch
- */
 async function fetchPackageJson(
   accessToken: string,
   repoFullName: string,
   prNumber: number,
 ): Promise<string | null> {
   try {
-    // Get PR details to find the head ref
     const prResponse = await axios.get(
       `https://api.github.com/repos/${repoFullName}/pulls/${prNumber}`,
       {
@@ -189,7 +193,6 @@ async function fetchPackageJson(
 
     const headRef = prResponse.data.head.ref;
 
-    // Fetch package.json from that branch
     const fileResponse = await axios.get(
       `https://api.github.com/repos/${repoFullName}/contents/package.json?ref=${headRef}`,
       {
@@ -207,9 +210,6 @@ async function fetchPackageJson(
   }
 }
 
-/**
- * Count findings by severity level
- */
 function countFindingsBySeverity(findings: {
   secrets: any[];
   cves: any[];
@@ -217,13 +217,11 @@ function countFindingsBySeverity(findings: {
 }): { critical: number; high: number; medium: number; low: number } {
   const counts = { critical: 0, high: 0, medium: 0, low: 0 };
 
-  // Count secrets (all critical or high)
   findings.secrets.forEach((secret) => {
     if (secret.severity === "critical") counts.critical++;
     else if (secret.severity === "high") counts.high++;
   });
 
-  // Count CVEs
   findings.cves.forEach((cve) => {
     if (cve.severity === "critical") counts.critical++;
     else if (cve.severity === "high") counts.high++;
@@ -231,7 +229,6 @@ function countFindingsBySeverity(findings: {
     else if (cve.severity === "low") counts.low++;
   });
 
-  // Count OWASP patterns
   findings.owaslPatterns.forEach((pattern) => {
     if (pattern.severity === "critical") counts.critical++;
     else if (pattern.severity === "high") counts.high++;
@@ -242,9 +239,6 @@ function countFindingsBySeverity(findings: {
   return counts;
 }
 
-/**
- * Store security findings in database
- */
 async function storeSecurityFindings(
   repoId: string,
   prNumber: number,
@@ -256,7 +250,6 @@ async function storeSecurityFindings(
   counts: { critical: number; high: number; medium: number; low: number },
 ) {
   try {
-    // Get the PR from database
     const pr = await prisma.pullRequest.findFirst({
       where: {
         repositoryId: repoId,
@@ -269,12 +262,11 @@ async function storeSecurityFindings(
       return;
     }
 
-    // Store secret findings
     for (const secret of findings.secrets) {
       await prisma.securityFinding.create({
         data: {
           prNumber,
-          commitSha: "", // Will be updated when available
+          commitSha: "",
           findingType: "secret",
           severity: secret.severity,
           title: `Hardcoded ${secret.type}`,
@@ -289,12 +281,11 @@ async function storeSecurityFindings(
       });
     }
 
-    // Store CVE findings
     for (const cve of findings.cves) {
       await prisma.securityFinding.create({
         data: {
           prNumber,
-          commitSha: "", // Will be updated when available
+          commitSha: "",
           findingType: "cve",
           severity: cve.severity,
           title: cve.title,
@@ -312,7 +303,6 @@ async function storeSecurityFindings(
       });
     }
 
-    // Store OWASP findings
     for (const pattern of findings.owaslPatterns) {
       await prisma.securityFinding.create({
         data: {
@@ -324,7 +314,7 @@ async function storeSecurityFindings(
           description: pattern.description,
           filePath: pattern.filePath,
           lineNumber: pattern.lineNumber,
-          fixable: false, // OWASP patterns require manual review
+          fixable: false,
           fixDetails: JSON.stringify({
             suggestions: pattern.suggestions,
             codeSnippet: pattern.codeSnippet,
@@ -343,9 +333,6 @@ async function storeSecurityFindings(
   }
 }
 
-/**
- * Update repository security score
- */
 async function updateRepositorySecurityScore(
   repoId: string,
   counts: { critical: number; high: number; medium: number; low: number },

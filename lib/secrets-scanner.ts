@@ -1,13 +1,12 @@
 export type SecretFinding = {
-  type: string; // e.g., "aws_key", "github_token", "private_key", "api_key"
-  value: string; // masked value
+  type: string;
+  value: string;
   lineNumber?: number;
   filePath?: string;
   severity: "critical" | "high";
   description: string;
 };
 
-// Comprehensive patterns for different secret types
 const SECRET_PATTERNS = {
   aws_access_key: {
     pattern:
@@ -84,9 +83,6 @@ const SECRET_PATTERNS = {
   },
 };
 
-/**
- * Scan a diff or code snippet for hardcoded secrets
- */
 export const scanForSecrets = (
   content: string,
   filePath?: string,
@@ -94,19 +90,16 @@ export const scanForSecrets = (
   const findings: SecretFinding[] = [];
   const lines = content.split("\n");
 
-  // Skip common non-secret files
   if (filePath && shouldSkipFile(filePath)) {
     return findings;
   }
 
   Object.values(SECRET_PATTERNS).forEach((patternConfig) => {
     lines.forEach((line, lineIndex) => {
-      // Skip common false positives
       if (shouldSkipLine(line)) return;
 
       const matches = line.matchAll(patternConfig.pattern);
       for (const match of matches) {
-        // Skip test/example values
         if (isTestValue(match[0])) continue;
 
         findings.push({
@@ -124,9 +117,6 @@ export const scanForSecrets = (
   return findings;
 };
 
-/**
- * Scan a GitHub PR diff for secrets
- */
 export const scanDiffForSecrets = (
   diff: string,
 ): Array<SecretFinding & { filePath: string; lineNumber: number }> => {
@@ -139,36 +129,146 @@ export const scanDiffForSecrets = (
   let lineNumber = 0;
 
   lines.forEach((line) => {
-    // Track current file from diff header
     if (line.startsWith("+++") || line.startsWith("---")) {
       currentFile = line.replace(/^[+-]{3}\s+[ab]\//, "").trim();
       if (shouldSkipFile(currentFile)) {
-        currentFile = ""; // Mark as skipped
+        currentFile = "";
       }
     }
 
-    // Only scan added/modified lines (starting with +, not +++)
     if (line.startsWith("+") && !line.startsWith("+++") && currentFile) {
       const contentLine = line.substring(1);
       lineNumber++;
 
-      const secretFindings = scanForSecrets(contentLine, currentFile);
+      const regexFindings = scanForSecrets(contentLine, currentFile);
       findings.push(
-        ...secretFindings.map((f) => ({
+        ...regexFindings.map((f) => ({
           ...f,
           filePath: currentFile,
           lineNumber,
         })),
       );
+
+      if (!shouldSkipFileForEntropy(currentFile)) {
+        const entropyFindings = scanForHighEntropySecrets(
+          contentLine,
+          currentFile,
+          lineNumber,
+        );
+        findings.push(...entropyFindings);
+      }
     }
   });
 
   return findings;
 };
 
-/**
- * Check if file should be skipped from secret scanning
- */
+function calculateShannonEntropy(str: string): number {
+  const length = str.length;
+  if (length === 0) return 0;
+
+  const frequencies: Record<string, number> = {};
+  for (const char of str) {
+    frequencies[char] = (frequencies[char] || 0) + 1;
+  }
+
+  let entropy = 0;
+  for (const count of Object.values(frequencies)) {
+    const probability = count / length;
+    entropy -= probability * Math.log2(probability);
+  }
+
+  return entropy;
+}
+
+function extractCandidateSecrets(
+  line: string,
+): Array<{ value: string; start: number }> {
+  const candidates: Array<{ value: string; start: number }> = [];
+
+  const tokenPattern = /[A-Za-z0-9_\-\.]{20,256}/g;
+  let match;
+
+  while ((match = tokenPattern.exec(line)) !== null) {
+    const token = match[0];
+    const entropy = calculateShannonEntropy(token);
+
+    if (entropy > 4.0 && !isLikelyFalsePositive(token)) {
+      candidates.push({
+        value: token,
+        start: match.index,
+      });
+    }
+  }
+
+  return candidates;
+}
+
+function isLikelyFalsePositive(token: string): boolean {
+  const patterns = [
+    /^test/i,
+    /^example/i,
+    /^fake/i,
+    /^mock/i,
+    /^demo/i,
+    /^placeholder/i,
+    /^[0]{8,}/,
+    /^[1]{8,}/,
+    /^[a]{8,}/,
+    /^localhost/i,
+    /^127\.0\.0\.1/,
+    /^0\.0\.0\.0/,
+    /node_modules/i,
+    /dist\/|build\/|out\//i,
+  ];
+
+  return patterns.some((p) => p.test(token));
+}
+
+function scanForHighEntropySecrets(
+  line: string,
+  filePath: string,
+  lineNumber: number,
+): Array<SecretFinding & { filePath: string; lineNumber: number }> {
+  const findings: Array<
+    SecretFinding & { filePath: string; lineNumber: number }
+  > = [];
+
+  const candidates = extractCandidateSecrets(line);
+
+  for (const candidate of candidates) {
+    const entropy = calculateShannonEntropy(candidate.value);
+
+    if (entropy > 4.5) {
+      findings.push({
+        type: "high_entropy_secret",
+        value: maskValue(candidate.value),
+        lineNumber,
+        filePath,
+        severity: "high",
+        description: `High entropy string detected (${entropy.toFixed(2)} bits) - likely API key, token, or secret`,
+      });
+    }
+  }
+
+  return findings;
+}
+
+function shouldSkipFileForEntropy(filePath: string): boolean {
+  const skipPatterns = [
+    /\.lock$/i,
+    /package-lock\.json$/i,
+    /yarn\.lock$/i,
+    /node_modules/i,
+    /dist\//i,
+    /build\//i,
+    /\.min\.js$/i,
+    /\.\d+\.\d+\.\d+/,
+  ];
+
+  return skipPatterns.some((pattern) => pattern.test(filePath));
+}
+
 function shouldSkipFile(filePath: string): boolean {
   const skipPatterns = [
     /\.md$/i,
@@ -184,44 +284,32 @@ function shouldSkipFile(filePath: string): boolean {
   return skipPatterns.some((pattern) => pattern.test(filePath));
 }
 
-/**
- * Check if line should be skipped (comments, examples, etc)
- */
 function shouldSkipLine(line: string): boolean {
-  const skipPatterns = [
-    /\/\//,
-    /\/\*/,
-    /\*\//,
-    /#/,
-    /example/i,
-    /test/i,
-    /fake/i,
-    /mock/i,
-    /demo/i,
-  ];
+  const trimmed = line.trim();
 
-  return skipPatterns.some((pattern) => pattern.test(line));
+  if (trimmed.length === 0) return true;
+
+  if (trimmed.startsWith("//")) return true;
+
+  if (trimmed.startsWith("/*") || trimmed.startsWith("*")) return true;
+
+  if (trimmed.startsWith("#")) return true;
+
+  return false;
 }
 
-/**
- * Check if value is a test/example value
- */
 function isTestValue(value: string): boolean {
   const testPatterns = [
-    /^test.*test$/i,
-    /^mock/i,
-    /^example/i,
-    /^fake/i,
-    /^12345/,
-    /^test@test/i,
+    /^(test|mock|fake|example|placeholder){2,}$/i,
+    /^test[0-9]{1,3}test$/i,
+    /^mock_.*_mock$/i,
+    /^(12345|00000|11111|aaaaa)+$/i,
+    /^test@(test|example)\.com$/i,
   ];
 
   return testPatterns.some((pattern) => pattern.test(value));
 }
 
-/**
- * Mask sensitive parts of a secret
- */
 function maskValue(value: string): string {
   if (value.length <= 8) {
     return "***";
