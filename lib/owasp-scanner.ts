@@ -232,6 +232,9 @@ export const correlateOWASPWithCVE = (
   owaslFindings: OWASPFinding[],
   cveFindings: any[],
 ): Array<OWASPFinding & { relatedCVEs?: any[] }> => {
+  console.warn(
+    "[DEPRECATED] correlateOWASPWithCVE is deprecated. Use correlateOWASPWithCVEUsingAI instead.",
+  );
   return owaslFindings.map((finding) => ({
     ...finding,
     relatedCVEs: [],

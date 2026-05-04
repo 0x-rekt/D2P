@@ -272,6 +272,10 @@ async function storeSecurityFindings(
       return;
     }
 
+    await prisma.securityFinding.deleteMany({
+      where: { repositoryId: repoId, prNumber },
+    });
+
     for (const secret of findings.secrets) {
       await prisma.securityFinding.create({
         data: {
@@ -402,6 +406,7 @@ async function updateRepositorySecurityScore(
       await prisma.repositorySecurityScore.create({
         data: {
           repositoryId: repoId,
+          scoredAt: today, // Explicitly set to midnight to prevent race condition on rapid scans
           overallScore: scoreBreakdown.overallScore,
           secretScore: scoreBreakdown.secretScore,
           cveScore: scoreBreakdown.cveScore,

@@ -240,13 +240,19 @@ export async function analyzeCiFailureWithAI(
   }
 
   try {
-    // Wrap entire analysis in timeout (5 minutes max)
-    (await performAnalysis(ciFailureId, userId), 5 * 60 * 1000);
+    await Promise.race([
+      performAnalysis(ciFailureId, userId),
+      new Promise<void>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Analysis timeout after 5 minutes")),
+          5 * 60 * 1000,
+        ),
+      ),
+    ]);
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : "Unknown error";
     console.error("[analyzeCiFailureWithAI] Analysis failed:", errorMsg);
 
-    // Always update to failed state
     try {
       await prisma.ciFailure.update({
         where: { id: ciFailureId },

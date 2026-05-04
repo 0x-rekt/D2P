@@ -289,12 +289,6 @@ function shouldSkipLine(line: string): boolean {
 
   if (trimmed.length === 0) return true;
 
-  if (trimmed.startsWith("//")) return true;
-
-  if (trimmed.startsWith("/*") || trimmed.startsWith("*")) return true;
-
-  if (trimmed.startsWith("#")) return true;
-
   return false;
 }
 
