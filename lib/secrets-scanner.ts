@@ -130,7 +130,7 @@ export const scanDiffForSecrets = (
 
   lines.forEach((line) => {
     if (line.startsWith("+++") || line.startsWith("---")) {
-      currentFile = line.replace(/^[+-]{3}\s+[ab]\//, "").trim();
+      currentFile = line.replace(/^[+-]{3}\s+[ab]\/(.+)$/, "$1");
       if (shouldSkipFile(currentFile)) {
         currentFile = "";
       }
@@ -219,7 +219,7 @@ function isLikelyFalsePositive(token: string): boolean {
     /^127\.0\.0\.1/,
     /^0\.0\.0\.0/,
     /node_modules/i,
-    /dist\/|build\/|out\//i,
+    /dist\/|build\/|out\//,
   ];
 
   return patterns.some((p) => p.test(token));
@@ -260,8 +260,8 @@ function shouldSkipFileForEntropy(filePath: string): boolean {
     /package-lock\.json$/i,
     /yarn\.lock$/i,
     /node_modules/i,
-    /dist\//i,
-    /build\//i,
+    /dist\//,
+    /build\//,
     /\.min\.js$/i,
     /\.\d+\.\d+\.\d+/,
   ];

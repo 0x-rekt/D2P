@@ -161,6 +161,7 @@ function applyReplacement(
   fileContent: string,
   originalCode: string,
   suggestedCode: string,
+  filePath: string,
 ): string | null {
   const normalized = fileContent.replace(/\r\n/g, "\n");
   const normOriginal = originalCode.replace(/\r\n/g, "\n");
@@ -234,6 +235,20 @@ function applyReplacement(
     }
   }
 
+  // actual code logged
+  console.warn(
+    `[gh-apply] No match for snippet in ${filePath} (all 4 strategies failed)`,
+  );
+  console.warn(`  snippet (first 120 chars): ${originalCode.slice(0, 120)}`);
+
+  // suggested code logged
+  console.warn(`  suggested (first 120 chars): ${suggestedCode.slice(0, 120)}`);
+
+  // current file content logged
+  console.warn(
+    `  file content (first 2000 chars): ${fileContent.slice(0, 2000)}`,
+  );
+
   return null; // all strategies exhausted
 }
 
@@ -243,9 +258,14 @@ export async function applyAndCreatePR(
   prNumber: number,
   suggestions: Suggestion[],
   accessToken: string,
+  headBranch?: string,
 ): Promise<ApplyResult> {
   try {
-    const baseSha = await getBranchSha(repoFullName, baseBranch, accessToken);
+    // Use headBranch if provided (where code exists in the PR),
+    // otherwise fall back to baseBranch (legacy behavior)
+    const sourceBranch = headBranch || baseBranch;
+
+    const baseSha = await getBranchSha(repoFullName, sourceBranch, accessToken);
 
     const newBranch = `d2p/pr-${prNumber}-suggestions-${Date.now()}`;
     await createBranch(repoFullName, newBranch, baseSha, accessToken);
@@ -265,7 +285,7 @@ export async function applyAndCreatePR(
         let { content, sha } = await getFileContent(
           repoFullName,
           filePath,
-          baseBranch,
+          sourceBranch,
           accessToken,
         );
 
@@ -275,6 +295,7 @@ export async function applyAndCreatePR(
             content,
             s.originalCode,
             s.suggestedCode,
+            filePath,
           );
           if (result !== null) {
             content = result;

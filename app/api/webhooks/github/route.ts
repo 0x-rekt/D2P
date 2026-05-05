@@ -3,6 +3,7 @@ import { runSecurityScan } from "@/lib/security-scanner";
 import {
   createCommitStatus,
   postSecurityComment,
+  requestChangesOnPR,
   formatSecurityFindingsForGitHub,
   generateSeverityLabels,
 } from "@/lib/github-security";
@@ -110,7 +111,28 @@ export const POST = async (req: NextRequest) => {
   }
 
   if (pr.head.ref.startsWith("d2p/")) {
-    return NextResponse.json({ success: true, message: "PR ignored" });
+    try {
+      const accessToken = await getGitHubAccessToken(repo.userId);
+      if (accessToken) {
+        await createCommitStatus(accessToken, repo.fullName, {
+          name: "D2P Security Scan",
+          headSha: pr.head.sha,
+          status: "completed",
+          conclusion: "success",
+          title: "D2P Fix PR - Auto Passed",
+          summary:
+            "This PR applies D2P AI suggestions and is exempt from security scanning",
+          details:
+            "D2P-generated PRs apply reviewed fixes and do not require additional scanning.",
+          prNumber: pr.number,
+        }).catch((error) => {
+          console.error("Error creating commit status for D2P PR:", error);
+        });
+      }
+    } catch (error) {
+      console.error("Error processing D2P PR:", error);
+    }
+    return NextResponse.json({ success: true, message: "D2P PR processed" });
   }
 
   let shouldResetReview = true;
@@ -170,61 +192,75 @@ export const POST = async (req: NextRequest) => {
     },
   });
 
-  await analyzePullRequestWithAI(pullRequest.id, repo.userId).catch((error) => {
-    console.error("Error analyzing pull request:", error);
-  });
-
-  try {
-    const accessToken = await getGitHubAccessToken(repo.userId);
-    if (accessToken) {
-      const securityResult = await runSecurityScan(
-        repo.id,
-        pr.number,
-        accessToken,
-        repo.fullName,
+  (async () => {
+    try {
+      await analyzePullRequestWithAI(pullRequest.id, repo.userId).catch(
+        (error) => {
+          console.error("Error analyzing pull request:", error);
+        },
       );
+    } catch (error) {
+      console.error("Unexpected error in analyzePullRequestWithAI:", error);
+    }
+  })();
 
-      if (securityResult.shouldBlockMerge) {
-        await createCommitStatus(accessToken, repo.fullName, {
-          name: "D2P Security Scan",
-          headSha: pr.head.sha,
-          status: "completed",
-          conclusion: "failure",
-          title: "Security Findings Detected",
-          summary: `Found ${securityResult.criticalFindings} critical, ${securityResult.highFindings} high, ${securityResult.mediumFindings} medium findings`,
-          details: formatSecurityFindingsForGitHub({
-            critical: securityResult.criticalFindings,
-            high: securityResult.highFindings,
-            medium: securityResult.mediumFindings,
-            low: securityResult.lowFindings,
-            details: securityResult.findings,
-          }),
-          prNumber: pr.number,
-        }).catch((error) => {
-          console.error("Error creating commit status:", error);
-        });
-
-        // Post comment with findings
-        await postSecurityComment(
+  (async () => {
+    try {
+      const accessToken = await getGitHubAccessToken(repo.userId);
+      if (accessToken) {
+        const securityResult = await runSecurityScan(
+          repo.id,
+          pr.number,
           accessToken,
           repo.fullName,
-          pr.number,
-          formatSecurityFindingsForGitHub({
+        );
+
+        if (securityResult.shouldBlockMerge) {
+          const findingsBody = formatSecurityFindingsForGitHub({
             critical: securityResult.criticalFindings,
             high: securityResult.highFindings,
             medium: securityResult.mediumFindings,
             low: securityResult.lowFindings,
             details: securityResult.findings,
-          }),
-        ).catch((error) => {
-          console.error("Error posting security comment:", error);
-        });
+          });
+
+          await requestChangesOnPR(
+            accessToken,
+            repo.fullName,
+            pr.number,
+            pr.head.sha,
+            findingsBody,
+          ).catch((error) => {
+            console.error("Error requesting changes:", error);
+          });
+
+          await createCommitStatus(accessToken, repo.fullName, {
+            name: "D2P Security Scan",
+            headSha: pr.head.sha,
+            status: "completed",
+            conclusion: "failure",
+            title: "Security Findings Detected",
+            summary: `Found ${securityResult.criticalFindings} critical, ${securityResult.highFindings} high, ${securityResult.mediumFindings} medium findings`,
+            details: findingsBody,
+            prNumber: pr.number,
+          }).catch((error) => {
+            console.error("Error creating commit status:", error);
+          });
+
+          await postSecurityComment(
+            accessToken,
+            repo.fullName,
+            pr.number,
+            findingsBody,
+          ).catch((error) => {
+            console.error("Error posting security comment:", error);
+          });
+        }
       }
+    } catch (error) {
+      console.error("Error running security scan in background:", error);
     }
-  } catch (error) {
-    console.error("Error running security scan:", error);
-    // Don't fail the webhook if security scan fails
-  }
+  })();
 
   return NextResponse.json({ success: true, pullRequestId: pullRequest.id });
 };

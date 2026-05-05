@@ -78,9 +78,12 @@ export const getPullRequestWithSuggestions = async (pullId: string) => {
   if (!session?.user)
     return { success: false, error: "Unauthorized", pull: null };
 
+  // Handle both database UUID and PR number
+  const isNumber = /^\d+$/.test(pullId);
+
   const pull = await prisma.pullRequest.findFirst({
     where: {
-      id: pullId,
+      ...(isNumber ? { prNumber: parseInt(pullId) } : { id: pullId }),
       repository: { userId: session.user.id },
     },
     include: {
@@ -160,16 +163,31 @@ export const applyAcceptedSuggestions = async (
     };
   }
 
+  // Filter out security-type suggestions from AI review
+  // (security findings are handled separately through the security scanner)
+  const applicableSuggestions = pr.suggestions.filter(
+    (s) => s.type !== "security",
+  );
+
+  if (applicableSuggestions.length === 0) {
+    return {
+      success: false,
+      error:
+        "No applicable suggestions to apply. Security findings are handled separately.",
+    };
+  }
+
   const result = await applyAndCreatePR(
     pr.repository.fullName,
     pr.baseBranch,
     pr.prNumber,
-    pr.suggestions.map((s) => ({
+    applicableSuggestions.map((s) => ({
       filePath: s.filePath,
       originalCode: s.originalCode,
       suggestedCode: s.suggestedCode,
     })),
     account.accessToken,
+    pr.headBranch,
   );
 
   if (!result.success) return result;

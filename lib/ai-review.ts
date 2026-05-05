@@ -69,7 +69,6 @@ PR Title: ${prTitle}
 Rules:
 - Return ONLY a valid JSON array with no markdown fences, no explanation outside the array
 - Each suggestion must reference exact code from the diff
-- Focus on real issues: bugs, security vulnerabilities, performance problems, meaningful refactors
 - Ignore pure formatting or whitespace-only changes
 - Maximum 10 suggestions
 
@@ -78,7 +77,7 @@ Each object in the array must have exactly these fields:
   "filePath": "path/to/file.ts",
   "startLine": <number>,
   "endLine": <number>,
-  "type": "bug" | "security" | "performance" | "style" | "refactor",
+  "type": "bug" | "performance" | "style" | "refactor",
   "severity": "critical" | "major" | "minor",
   "comment": "Clear explanation of the issue and why the fix is better",
   "originalCode": "exact snippet from the diff",

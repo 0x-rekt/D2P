@@ -24,8 +24,6 @@ type CiDiagnosis = {
   patches: CiPatch[];
 };
 
-// ─── GitHub log fetching ──────────────────────────────────────────────────────
-
 async function fetchWorkflowLogs(
   repoFullName: string,
   runId: number | bigint,

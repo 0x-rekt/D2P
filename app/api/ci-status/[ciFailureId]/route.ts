@@ -20,7 +20,7 @@ export async function GET(
           try {
             controller.close();
           } catch {
-            // Controller already closed or closing, ignore
+
           }
         }
       };

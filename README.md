@@ -1,47 +1,200 @@
-<div align="center">
+# D2P (Deploy to Production) - Intelligent Code Review & Security Platform
 
-# D2P — Diff to Perfection
+## 🎯 Project Overview
 
-**AI-powered development assistant for GitHub**
+**D2P** is an AI-powered code review and security analysis platform that integrates with GitHub to provide comprehensive security scanning, vulnerability detection, and code quality improvements for Pull Requests and CI/CD pipelines. It combines multiple security scanning techniques with AI-powered analysis to help development teams identify and fix issues before they reach production.
 
-Automate code reviews, fix CI failures, and enhance your development workflow with AI-powered insights and one-click solutions.
+### Core Mission
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
-[![Gemini](https://img.shields.io/badge/Gemini_2.5_Flash-Vertex_AI-4285F4?logo=google-cloud)](https://cloud.google.com/vertex-ai)
-[![Prisma](https://img.shields.io/badge/Prisma-7.x-2D3748?logo=prisma)](https://www.prisma.io/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql)](https://neon.tech/)
-
-</div>
+Automatically scan GitHub repositories for security vulnerabilities, code quality issues, and CI/CD failures, providing actionable suggestions directly in pull requests with AI-powered diagnostics and automated fixes.
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- **🔗 GitHub Integration** — Connect any GitHub repository with one click. D2P automatically installs a webhook to listen for PR events.
-- **🤖 AI-Powered Reviews** — Every new or updated pull request is analyzed by Gemini 2.5 Flash, producing up to 10 categorized suggestions per review.
-- **🏷️ Categorized Suggestions** — Issues are classified by type (bug, security, performance, style, refactor) and severity (critical, major, minor).
-- **✅ Accept / Reject Workflow** — Review each suggestion, accept or reject it, and undo any decision at any time.
-- **🚀 One-Click Apply** — Accepted suggestions are automatically applied to a new branch and submitted as a GitHub PR — no manual editing required.
-- **🔄 Re-trigger Reviews** — Re-run the AI analysis on any PR whenever you want a fresh review.
-- **� CI/CD Diagnostics** — Automatically diagnose workflow failures and generate AI-powered patches with one click.
-- **🔒 Secure Webhooks** — All incoming webhook payloads are verified with HMAC-SHA256 signatures.
-- **🌙 Dark Mode UI** — A sleek, modern dashboard built with Tailwind CSS and shadcn/ui.
+### 🔐 Security Scanning
+
+#### 1. **Secrets Detection**
+
+- Detects hardcoded secrets including:
+  - AWS Access Keys & Secret Keys
+  - GitHub Personal Access Tokens
+  - Private Keys (RSA, SSH)
+  - Docker Registry Credentials
+  - NPM/Slack/API Tokens
+  - Database Connection Strings
+  - Hardcoded Passwords
+- Scans both code changes and comments
+- Entropy-based detection for random-looking secrets
+- Test value filtering to avoid false positives
+
+#### 2. **CVE & Dependency Vulnerability Scanning**
+
+- Queries OSV (Open Source Vulnerabilities) Database
+- Scans `package.json` dependencies for known vulnerabilities
+- Identifies affected versions and available fixes
+- CVSS scoring for severity assessment
+- Provides fixed version recommendations
+- Comprehensive security scoring for repositories
+
+#### 3. **OWASP Top 10 Analysis**
+
+- Detects code patterns matching OWASP vulnerabilities:
+  - SQL Injection risks
+  - Hardcoded role checks
+  - Weak cryptographic hashes
+  - Insecure deserialization
+  - Missing authentication/authorization
+  - Cross-site scripting (XSS) patterns
+  - Insecure direct object references
+- AI-powered verification of findings
+- Correlation between OWASP patterns and CVEs
+
+#### 4. **Real-time Security Status**
+
+- GitHub commit status updates
+- PR review comments with detailed findings
+- Configurable merge blocking for critical findings
+- Severity-based labeling and sorting
+
+### 🤖 AI-Powered Analysis
+
+#### Code Review
+
+- AI analysis of pull request changes
+- Suggestion generation for code improvements
+- Context-aware recommendations
+- Integration with Google Generative AI (Gemini)
+
+#### CI/CD Failure Diagnosis
+
+- Automatic analysis of CI/CD workflow failures
+- AI-powered root cause identification
+- Suggested patches for common failures
+- Fix suggestion generation with automated PR creation
+
+### 📊 Dashboard & Monitoring
+
+#### Repository Dashboard
+
+- Connected repositories overview
+- Security score tracking
+- PR review history
+- CI failure analysis
+- Security finding trends
+
+#### Pull Request Tracking
+
+- All PR reviews and suggestions
+- Severity-based filtering
+- Application status tracking
+- Applied PR links
+
+### 🚀 Automated Fixes
+
+#### Suggestion Application
+
+- One-click suggestion application to new branches
+- Automated PR creation for fixes
+- Intelligent fix branching from correct HEAD commits
+- Support for new code in PR HEAD branch
+
+#### Dependency Updates
+
+- Automatic package.json updates for vulnerable packages
+- Suggested version upgrades
+- Maintains dev/production dependency structure
 
 ---
 
-## 🛠 Tech Stack
+## 🏗️ Architecture
 
-| Layer          | Technology                                           |
-| -------------- | ---------------------------------------------------- |
-| **Framework**  | Next.js 16 (App Router, Server Actions)              |
-| **Language**   | TypeScript                                           |
-| **AI**         | Google Gemini 2.5 Flash via Vertex AI                |
-| **Auth**       | Better Auth with GitHub OAuth (repo scope)           |
-| **Database**   | PostgreSQL (Neon) via Prisma ORM                     |
-| **Styling**    | Tailwind CSS 4 + shadcn/ui + Radix UI                |
-| **Icons**      | Lucide React                                         |
-| **GitHub API** | Axios (REST v3)                                      |
-| **Utilities**  | adm-zip (CI log parsing), crypto (HMAC verification) |
+### Technology Stack
+
+**Frontend & Framework:**
+
+- Next.js 16.1.6 (with Turbopack)
+- React 19.2.3
+- TypeScript 5
+- Tailwind CSS 4
+- Radix UI components
+- Framer Motion (animations)
+- Three.js (3D backgrounds)
+
+**Backend & Database:**
+
+- Next.js API Routes (Server Actions)
+- Prisma ORM 7.8.0
+- PostgreSQL
+- Better Auth (Authentication)
+
+**AI & Analysis:**
+
+- Google Generative AI SDK
+- OSV Database API (CVE querying)
+- Custom security scanners
+
+**DevOps & Build:**
+
+- Turbopack (Next.js build system)
+- ESLint (Code linting)
+- PostCSS with Tailwind
+
+### System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    GitHub Integration                       │
+│  (Webhooks for PR events, Push events, and CI runs)        │
+└────────────────┬────────────────────────────────────────────┘
+                 │
+┌────────────────▼────────────────────────────────────────────┐
+│              Next.js Application Layer                       │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ API Webhooks (/api/webhooks/github)                │   │
+│  │ - PR opened/synchronize events                     │   │
+│  │ - CI workflow run completion                       │   │
+│  └─────────────────────────────────────────────────────┘   │
+└────────────────┬────────────────────────────────────────────┘
+                 │
+┌────────────────▼─────────────────────────────────────────────┐
+│            Security & Analysis Engine                        │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │   Secrets    │  │    CVE       │  │   OWASP      │       │
+│  │   Scanner    │  │   Detector   │  │   Pattern    │       │
+│  │              │  │   (OSV API)  │  │   Matcher    │       │
+│  └──────────────┘  └──────────────┘  └──────────────┘       │
+│         │                  │                │                │
+│  ┌──────────────────────────────────────────────────┐        │
+│  │   AI Verification & Enhancement                 │        │
+│  │   (Google Generative AI - Gemini)               │        │
+│  └──────────────────────────────────────────────────┘        │
+└────────────────┬─────────────────────────────────────────────┘
+                 │
+┌────────────────▼─────────────────────────────────────────────┐
+│              GitHub Interaction Layer                        │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │   Commit     │  │   PR Review  │  │   Create     │       │
+│  │   Status     │  │   Comments   │  │   Issues     │       │
+│  └──────────────┘  └──────────────┘  └──────────────┘       │
+└────────────────┬─────────────────────────────────────────────┘
+                 │
+┌────────────────▼─────────────────────────────────────────────┐
+│           Data Storage & Dashboard                           │
+│  ┌──────────────────────────────────────────────────┐        │
+│  │ PostgreSQL Database (Prisma ORM)                │        │
+│  │ - Repositories, PRs, Security Findings          │        │
+│  │ - CI Failures, Suggestions, Users               │        │
+│  └──────────────────────────────────────────────────┘        │
+│                      │                                       │
+│  ┌──────────────────▼──────────────────────────┐            │
+│  │ Web Dashboard                               │            │
+│  │ - Repo overview, Security scores            │            │
+│  │ - PR tracking, Finding details              │            │
+│  │ - CI failure analysis                       │            │
+│  └───────────────────────────────────────────── │            │
+└────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -49,463 +202,482 @@ Automate code reviews, fix CI failures, and enhance your development workflow wi
 
 ```
 D2P/
-├── app/                          # Next.js App Router
-│   ├── api/
-│   │   ├── auth/[...all]/       # Better Auth webhook handler
-│   │   ├── ci-status/           # CI analysis SSE endpoint
-│   │   ├── review-status/       # PR review SSE endpoint
-│   │   └── webhooks/
-│   │       ├── github/          # PR webhook handler
-│   │       └── github-ci/       # CI webhook handler
-│   ├── dashboard/               # Main dashboard
-│   │   ├── page.tsx             # Repository list (paginated)
-│   │   └── repos/[repoId]/
-│   │       ├── page.tsx         # PR list view
-│   │       ├── ci/              # CI failure management
-│   │       │   ├── page.tsx
-│   │       │   └── [ciFailureId]/
-│   │       └── pulls/           # PR detail views
-│   │           └── [pullId]/
-│   ├── layout.tsx               # Root layout with auth context
-│   ├── page.tsx                 # Landing page
-│   └── globals.css              # Global styles
+├── app/                           # Next.js App Router
+│   ├── api/                       # API endpoints
+│   │   ├── auth/                  # Authentication routes (Better Auth)
+│   │   ├── webhooks/              # GitHub webhook handlers
+│   │   │   ├── github/            # Main webhook handler
+│   │   │   └── github-ci/         # CI workflow events
+│   │   ├── security/              # Security findings API
+│   │   ├── ci-status/             # CI failure status
+│   │   ├── review-status/         # PR review status
+│   │   └── security-status/       # Repository security status
+│   ├── dashboard/                 # Protected dashboard pages
+│   │   └── repos/                 # Repository management
+│   ├── page.tsx                   # Landing page
+│   └── layout.tsx                 # Root layout
 │
-├── actions/                      # Server Actions (Type-safe mutations)
-│   ├── ci.ts                    # CI operations: list, get, retrigger, apply patches
-│   ├── pulls.ts                 # PR operations: list, get with suggestions, update, apply
-│   └── repos.ts                 # Repository operations: connect, disconnect, list
+├── components/                    # React components
+│   ├── Dashboard/                 # Dashboard components
+│   │   ├── CiDiagnosisPanel.tsx   # CI failure diagnosis
+│   │   ├── CiFailureCard.tsx      # CI failure display
+│   │   └── CiStatusWatcher.tsx    # Real-time CI status
+│   ├── Security/                  # Security components
+│   │   ├── SecurityFindingCard.tsx
+│   │   ├── SecurityFindingsPanel.tsx
+│   │   └── SecurityStatusWatcher.tsx
+│   ├── Review/                    # Code review components
+│   │   ├── ReviewStatusWatcher.tsx
+│   │   ├── SuggestionPanel.tsx
+│   │   └── RetriggerBtn.tsx
+│   ├── Auth/                      # Authentication components
+│   │   ├── ConnectButton.tsx
+│   │   ├── SignInBtn.tsx
+│   │   └── ConnectButton.tsx
+│   └── UI/                        # shadcn/ui components
 │
-├── components/                   # React Components
-│   ├── Hero.tsx                 # Landing hero with code diff preview
-│   ├── HowItWorks.tsx           # Feature explanation
-│   ├── Features.tsx             # Feature list
-│   ├── CTA.tsx                  # Call-to-action section
-│   ├── Footer.tsx               # Footer
-│   ├── NavBar.tsx               # Navigation bar
-│   ├── RepoCard.tsx             # Repository card with connect toggle
-│   ├── ConnectButton.tsx        # Connect/disconnect button
-│   ├── SuggestionPanel.tsx      # Suggestion accept/reject/apply UI
-│   ├── ReviewStatusWatcher.tsx  # SSE polling for PR review status
-│   ├── CiFailureCard.tsx        # CI failure card display
-│   ├── CiDiagnosisPanel.tsx     # CI diagnosis with patches
-│   ├── CiStatusWatcher.tsx      # SSE polling for CI analysis
-│   ├── RetriggerBtn.tsx         # Re-trigger review button
-│   ├── SignInBtn.tsx            # Sign in button
-│   ├── ExternalLink.tsx         # External link component
-│   └── ui/                      # shadcn/ui components
-│       ├── badge.tsx
-│       └── button.tsx
+├── lib/                           # Utility functions & engines
+│   ├── Security Scanners
+│   │   ├── secrets-scanner.ts     # Detects hardcoded secrets
+│   │   ├── security-scanner.ts    # Orchestrates all security scans
+│   │   ├── owasp-scanner.ts       # OWASP pattern detection
+│   │   └── cve-query.ts           # CVE lookup from OSV DB
+│   │
+│   ├── AI Analysis
+│   │   ├── ai-review.ts           # PR code review analysis
+│   │   ├── ai-ci-review.ts        # CI failure diagnosis
+│   │   └── ai-security-review.ts  # OWASP verification & correlation
+│   │
+│   ├── GitHub Integration
+│   │   ├── github-security.ts     # GitHub API interactions
+│   │   └── gh-apply.ts            # Fix application & PR creation
+│   │
+│   ├── Authentication & Utils
+│   │   ├── auth.ts                # Better Auth configuration
+│   │   ├── auth-helpers.ts        # Token management
+│   │   ├── auth-client.ts         # Client-side auth
+│   │   ├── prisma.ts              # Database client
+│   │   └── utils.ts               # Helper functions
 │
-├── lib/                          # Core Logic & Utilities
-│   ├── ai-review.ts             # Gemini diff analysis pipeline
-│   ├── ai-ci-review.ts          # CI failure diagnosis pipeline
-│   ├── auth.ts                  # Better Auth configuration
-│   ├── auth-client.ts           # Client-side auth hooks
-│   ├── gh-apply.ts              # GitHub API: branch creation, file updates, PR opening
-│   ├── prisma.ts                # Prisma client singleton
-│   └── utils.ts                 # Utility functions
+├── actions/                       # Server Actions
+│   ├── security.ts                # Security findings queries
+│   ├── ci.ts                      # CI failure queries
+│   ├── pulls.ts                   # PR & suggestion queries
+│   └── repos.ts                   # Repository queries
 │
-├── prisma/                       # Database Schema & Migrations
-│   ├── schema.prisma            # Prisma schema (User, Repository, PullRequest, Suggestion, CiFailure)
-│   └── migrations/              # Database migration history
+├── prisma/                        # Database schema & migrations
+│   ├── schema.prisma              # Data models
+│   └── migrations/                # Migration history
 │
-├── generated/prisma/             # Prisma Client (auto-generated, gitignored)
-│   ├── client.ts
-│   ├── browser.ts
-│   ├── models/
-│   │   ├── User.ts
-│   │   ├── Repository.ts
-│   │   ├── PullRequest.ts
-│   │   ├── Suggestion.ts
-│   │   └── CiFailure.ts
-│   └── ...
+├── public/                        # Static assets
 │
-├── public/                       # Static assets
-│
-├── .env                         # Environment variables (gitignored)
-├── .env.example                 # Example environment variables
-├── next.config.ts               # Next.js configuration
-├── tsconfig.json                # TypeScript configuration
-├── eslint.config.mjs            # ESLint configuration
-├── tailwind.config.ts           # Tailwind CSS configuration
-├── postcss.config.mjs           # PostCSS configuration
-├── package.json                 # Dependencies
-└── README.md                    # This file
+└── Configuration Files
+    ├── next.config.ts             # Next.js configuration
+    ├── tsconfig.json              # TypeScript configuration
+    ├── tailwind.config.ts         # Tailwind CSS config
+    ├── postcss.config.mjs          # PostCSS config
+    ├── eslint.config.mjs           # ESLint rules
+    └── package.json               # Dependencies
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🔄 Core Workflows
+
+### 1. **Repository Connection Flow**
+
+```
+User connects GitHub repo
+    ↓
+App creates GitHub Webhook
+    ↓
+Webhook registered on PR events:
+  - opened
+  - synchronize (new commits)
+    ↓
+Repo stored in database with webhook credentials
+```
+
+### 2. **Pull Request Security Scanning**
+
+```
+PR opened/updated on GitHub
+    ↓
+Webhook received at /api/webhooks/github
+    ↓
+Signature verification (HMAC-SHA256)
+    ↓
+Security scan initiated:
+    ├─ Download PR diff
+    ├─ Extract changed files
+    ├─ Scan for secrets
+    ├─ Scan for CVEs (package.json)
+    ├─ Scan for OWASP patterns
+    └─ AI verification of findings
+    ↓
+Results stored in database
+    ↓
+GitHub interactions:
+    ├─ Commit status updated
+    ├─ PR comment with findings
+    ├─ Request changes if critical
+    └─ Add severity labels
+    ↓
+User views on dashboard
+```
+
+### 3. **AI Code Review**
+
+```
+PR changes received
+    ↓
+Extract code diff
+    ↓
+Send to Google Generative AI with context:
+    ├─ Code changes
+    ├─ File paths
+    ├─ Diff context
+    └─ Repository language info
+    ↓
+AI generates suggestions:
+    ├─ Code improvements
+    ├─ Security recommendations
+    ├─ Performance optimizations
+    └─ Best practice suggestions
+    ↓
+Store suggestions in database
+    ↓
+Display on PR & dashboard
+```
+
+### 4. **CI Failure Diagnosis**
+
+```
+GitHub Workflow fails
+    ↓
+Webhook triggered at /api/webhooks/github-ci
+    ↓
+Fetch workflow run logs
+    ↓
+Send to AI for analysis:
+    ├─ Error messages
+    ├─ Log content
+    ├─ Workflow name
+    └─ Repository context
+    ↓
+AI generates:
+    ├─ Root cause analysis
+    ├─ Suggested fix
+    ├─ Patch content
+    └─ Explanation
+    ↓
+Store diagnosis in database
+    ↓
+Optionally create fix PR:
+    ├─ Create fix branch
+    ├─ Apply patch
+    ├─ Create PR to original branch
+    └─ Link to dashboard
+```
+
+### 5. **Suggestion Application**
+
+```
+User clicks "Apply Suggestion"
+    ↓
+Create new branch from PR HEAD:
+    ├─ Fetch PR HEAD commit
+    ├─ Create fix branch
+    └─ Apply suggestion code
+    ↓
+Commit changes with message
+    ↓
+Push to GitHub
+    ↓
+Create Pull Request:
+    ├─ Title with suggestion context
+    ├─ Link to original PR
+    ├─ Suggestion details in body
+    └─ Auto-request review
+    ↓
+Store PR URL in database
+    ↓
+Update dashboard
+```
+
+---
+
+## 🔐 Security Features in Detail
+
+### Secrets Detection Algorithm
+
+1. **Pattern-based Detection**
+   - Regular expressions for known secret formats
+   - Multiple patterns for each secret type
+   - Test value filtering (to ignore mock credentials)
+
+2. **Entropy-based Detection**
+   - Analyzes randomness in extracted strings
+   - Shannon entropy calculation
+   - Configurable entropy threshold
+   - Filters common non-secret patterns
+
+3. **Context Filtering**
+   - Skips test directories (`node_modules`, `dist`, `build`)
+   - Ignores documentation files (`.md`, `.txt`)
+   - Skips lock files and config files
+   - Filters mock/test data
+
+### CVE Scanning
+
+1. **Dependency Extraction**
+   - Parses `package.json` dependencies
+   - Combines `dependencies` and `devDependencies`
+   - Handles multiple versions
+
+2. **OSV Database Query**
+   - Batch queries to OSV API (max 1000 at once)
+   - Timeout: 60 seconds for batch operations
+   - Caches results for performance
+   - Graceful degradation on API failures
+
+3. **Severity Mapping**
+   - CRITICAL → Block merge
+   - HIGH → Request review
+   - MEDIUM → Comment warning
+   - LOW → Informational
+
+### OWASP Pattern Detection
+
+Detects 8+ OWASP Top 10 patterns including:
+
+- **SQL Injection**: String concatenation in queries
+- **Weak Cryptography**: MD5, SHA1 usage
+- **Hardcoded Access Control**: Hardcoded role checks
+- **Insecure Deserialization**: Unsafe parsing
+- **Missing Auth**: Unprotected endpoints
+- **XSS**: Unsafe HTML injection
+- **IDOR**: Missing authorization checks
+- **Security Misconfiguration**: Exposed debug info
+
+---
+
+## 🚀 Setup & Deployment
 
 ### Prerequisites
 
-- **Node.js** ≥ 18
-- **npm** (or yarn / pnpm)
-- A **PostgreSQL** database (e.g. [Neon](https://neon.tech/))
-- A **GitHub OAuth App** with `repo`, `read:user`, and `user:email` scopes
-- A **Google Cloud** project with Vertex AI enabled and a service account key
+- Node.js 18+
+- PostgreSQL 12+
+- GitHub App or OAuth credentials
+- Google Cloud Generative AI API key (optional, for AI features)
 
-### 1. Clone & Install
+### Local Development Setup
 
-```bash
-git clone https://github.com/0x-rekt/D2P.git
-cd D2P
-npm install
-```
+1. **Clone Repository**
 
-### 2. Configure Environment
+   ```bash
+   git clone https://github.com/your-org/d2p.git
+   cd d2p
+   ```
 
-Create a `.env.local` file in the project root:
+2. **Install Dependencies**
 
-```env
-# Database (PostgreSQL)
-DATABASE_URL=postgresql://user:password@host:5432/dbname?sslmode=require
+   ```bash
+   npm install
+   ```
 
-# Better Auth (Authentication)
-BETTER_AUTH_SECRET=generate-a-random-secret-32-chars-minimum
-BETTER_AUTH_URL=http://localhost:3000
+3. **Environment Configuration**
+   Create `.env.local`:
 
-# GitHub OAuth (from GitHub Settings > Developer settings > OAuth Apps)
-GITHUB_CLIENT_ID=your-github-oauth-app-client-id
-GITHUB_CLIENT_SECRET=your-github-oauth-app-client-secret
+   ```env
+   # Database
+   DATABASE_URL="postgresql://user:password@localhost:5432/d2p"
 
-# Webhook Base URL (use ngrok for local dev)
-WEBHOOK_BASE_URL=https://your-domain.ngrok-free.app
+   # GitHub OAuth/App
+   GITHUB_CLIENT_ID=your_github_client_id
+   GITHUB_CLIENT_SECRET=your_github_client_secret
+   GITHUB_WEBHOOK_SECRET=your_webhook_secret
 
-# Google Cloud / Vertex AI
-GCP_PROJECT_ID=your-gcp-project-id
-GCP_REGION=us-central1
-GOOGLE_APPLICATION_CREDENTIALS=./gcp-service-account.json
+   # Better Auth
+   BETTER_AUTH_SECRET=your_secret_min_32_chars
+   BETTER_AUTH_URL=http://localhost:3000
 
-# Optional: For Google Cloud Text-to-Speech (if needed)
-NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY=your-api-key
-```
+   # Google AI
+   NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY=your_api_key
 
-**Environment Variable Details:**
+   # Optional: AI Review toggle
+   ENABLE_AI_REVIEW=true
+   ```
 
-| Variable                         | Purpose                                                   | Example                                               |
-| -------------------------------- | --------------------------------------------------------- | ----------------------------------------------------- |
-| `DATABASE_URL`                   | PostgreSQL connection string                              | `postgresql://user:pass@neon.tech/db?sslmode=require` |
-| `BETTER_AUTH_SECRET`             | Secret for signing auth tokens                            | Generated random string                               |
-| `BETTER_AUTH_URL`                | Auth callback URL                                         | `http://localhost:3000` or `https://d2p.com`          |
-| `GITHUB_CLIENT_ID`               | GitHub OAuth app ID                                       | `Iv1.abc123...`                                       |
-| `GITHUB_CLIENT_SECRET`           | GitHub OAuth app secret                                   | `secret_abc123...`                                    |
-| `WEBHOOK_BASE_URL`               | Base URL for webhooks (used when registering with GitHub) | `https://d2p.ngrok.io`                                |
-| `GCP_PROJECT_ID`                 | Google Cloud project ID                                   | `my-gcp-project`                                      |
-| `GCP_REGION`                     | GCP region                                                | `us-central1` or `global`                             |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Path to GCP service account JSON                          | `./gcp-service-account.json`                          |
+4. **Database Setup**
 
-> [!TIP]
-> For local development with GitHub webhooks, use [ngrok](https://ngrok.com/):
->
-> ```bash
-> ngrok http 3000
-> # Copy the HTTPS URL and set as WEBHOOK_BASE_URL in .env.local
-> ```
+   ```bash
+   # Create database
+   createdb d2p
 
-### 3. Set Up the Database
+   # Run migrations
+   npx prisma migrate dev
 
-```bash
-# Generate Prisma client
-npx prisma generate
+   # Generate Prisma Client
+   npx prisma generate
+   ```
 
-# Run migrations
-npx prisma migrate deploy
+5. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
+   Visit `http://localhost:3000`
 
-# Optional: Seed database or inspect with Prisma Studio
-npx prisma studio
-```
+### GitHub Integration Setup
 
-### 4. Add GCP Credentials
+#### Option 1: OAuth App
 
-1. Create a service account in Google Cloud Console
-2. Generate a JSON key file
-3. Place it at the project root as `gcp-service-account.json`
-4. Ensure the service account has **Vertex AI User** role
+1. Go to GitHub Settings → Developer settings → OAuth Apps
+2. Create new OAuth App
+3. Set Authorization callback URL to `http://localhost:3000/api/auth/callback/github`
+4. Copy Client ID and Client Secret
 
-> [!WARNING]
-> Keep `gcp-service-account.json` in `.gitignore` — never commit this file!
+#### Option 2: GitHub App (Recommended for Webhooks)
 
-### 5. Create GitHub OAuth App
+1. Create GitHub App at Settings → Developer settings → GitHub Apps
+2. Set Webhook URL to `your-domain.com/api/webhooks/github`
+3. Subscribe to events:
+   - Pull Request (opened, synchronize, closed)
+   - Push
+   - Workflow run
+4. Configure permissions:
+   - Pull requests: Read & write
+   - Contents: Read
+   - Commit statuses: Read & write
+   - Issues: Read & write
 
-1. Go to GitHub Settings > Developer settings > OAuth Apps
-2. Click "New OAuth App"
-3. Fill in:
-   - **Application name**: D2P
-   - **Homepage URL**: `http://localhost:3000` (or your domain)
-   - **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github`
-4. Copy the **Client ID** and generate a **Client Secret**
-5. Add to `.env.local`
+### Production Deployment
 
-> [!NOTE]
-> The OAuth app needs `repo`, `read:user`, and `user:email` scopes. These are handled automatically by Better Auth.
-
-### 6. Run
+#### Vercel (Recommended)
 
 ```bash
-npm run dev
+vercel link
+vercel env add DATABASE_URL
+vercel env add GITHUB_CLIENT_SECRET
+vercel env add BETTER_AUTH_SECRET
+# ... add other env vars
+
+vercel deploy --prod
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
-## 🔄 How It Works
-
-### Pull Request Review Flow
-
-```
-┌──────────────┐     webhook      ┌───────────────┐     Gemini AI     ┌─────────────────┐
-│   GitHub PR  │ ──────────────►  │  D2P Server   │ ────────────────► │  AI Suggestions │
-│  (open/sync) │                  │  (webhook)    │                   │  (stored in DB) │
-└──────────────┘                  └───────────────┘                   └────────┬────────┘
-                                                                               │
-                                                                    accept / reject
-                                                                               │
-                                                                      ┌───────▼────────┐
-                                                                      │  Apply & Create │
-                                                                      │   New GitHub PR │
-                                                                      └────────────────┘
-```
-
-**Step-by-step:**
-
-1. **Sign In** — User authenticates with GitHub OAuth
-2. **Connect Repository** — User selects repos to monitor, D2P registers a webhook
-3. **PR Webhook Triggered** — GitHub sends `pull_request` event (opened/synchronize)
-4. **Fetch Diff** — D2P retrieves the pull request diff (capped at 500KB)
-5. **AI Analysis** — Diff sent to Gemini 2.5 Flash with system prompt
-6. **Generate Suggestions** — Up to 10 categorized suggestions (bug, security, performance, style, refactor)
-7. **Store Results** — Suggestions persisted in database with status `pending`
-8. **User Review** — User reviews suggestions in dashboard
-9. **Accept/Reject** — User marks suggestions as `accepted` or `rejected`
-10. **Apply Patch** — One-click action creates new branch, applies patches, opens PR
-
-### CI/CD Failure Diagnosis Flow
-
-```
-┌──────────────────┐      webhook/polling      ┌─────────────┐       AI Analysis       ┌──────────────┐
-│  CI Workflow     │ ──────────────────────►   │   D2P       │ ────────────────────►   │ Diagnosis +  │
-│  Failure Event   │                           │  (fetch     │                         │  Patches     │
-└──────────────────┘                           │   logs)     │                         └──────┬───────┘
-                                               └─────────────┘                                │
-                                                                                   apply patches
-                                                                                        │
-                                                                               ┌──────▼────────┐
-                                                                               │  Create PR    │
-                                                                               │  with fixes   │
-                                                                               └───────────────┘
-```
-
-**Step-by-step:**
-
-1. **CI Workflow Fails** — GitHub Actions / CI job fails
-2. **Fetch Logs** — D2P downloads workflow logs as ZIP
-3. **Parse Logs** — Extract error messages and context
-4. **Fetch Changed Files** — Get diff of the failing commit
-5. **AI Diagnosis** — Send logs + diff to Gemini for root cause analysis
-6. **Generate Patches** — AI suggests code fixes
-7. **User Review** — User reviews diagnosis and patches
-8. **Apply Patch** — One-click to create PR with fixes
-
----
-
-## 📊 Data Model
-
-### Prisma Schema Overview
-
-| Model          | Purpose                | Key Fields                                                                                                                                                       |
-| -------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `User`         | Authenticated users    | id, email, name, sessions                                                                                                                                        |
-| `Session`      | Auth sessions          | id, userId, expiresAt                                                                                                                                            |
-| `Account`      | OAuth credentials      | id, userId, provider, providerAccountId, accessToken                                                                                                             |
-| `Verification` | Email verification     | id, identifier, value, expiresAt                                                                                                                                 |
-| `Repository`   | Connected GitHub repos | id, userId, name, owner, webhookId, webhookSecret, isConnected                                                                                                   |
-| `PullRequest`  | Tracked PRs            | id, repositoryId, githubId, title, url, status (pending/reviewing/reviewed/failed)                                                                               |
-| `Suggestion`   | AI suggestions         | id, pullRequestId, file, lineStart, lineEnd, type (bug/security/performance/style/refactor), severity (critical/major/minor), status (pending/accepted/rejected) |
-| `CiFailure`    | CI workflow failures   | id, repositoryId, workflowRunId, jobName, conclusion, logs, diagnosis, status (pending/diagnosed/patched)                                                        |
-
----
-
-## 🔌 API Routes
-
-### Authentication
-
-| Method     | Route                | Description                                    |
-| ---------- | -------------------- | ---------------------------------------------- |
-| `GET/POST` | `/api/auth/[...all]` | Better Auth handler (catch-all for OAuth flow) |
-
-### Webhooks
-
-| Method | Route                     | Description                              |
-| ------ | ------------------------- | ---------------------------------------- |
-| `POST` | `/api/webhooks/github`    | Handles PR webhook events (pull_request) |
-| `POST` | `/api/webhooks/github-ci` | Handles CI failure events                |
-
-### Real-time Status
-
-| Method | Route                          | Description                          |
-| ------ | ------------------------------ | ------------------------------------ |
-| `GET`  | `/api/review-status/[pullId]`  | SSE: Polls PR review analysis status |
-| `GET`  | `/api/ci-status/[ciFailureId]` | SSE: Polls CI diagnosis status       |
-
----
-
-## ⚙️ Server Actions
-
-All data mutations use Server Actions for type-safe client-server communication.
-
-### Repository Actions (`actions/repos.ts`)
-
-```typescript
-// Get user's connected repositories (paginated)
-getRepositories(page: number, limit?: number)
-
-// Connect a new repository (sets up webhook)
-connectRepository(repoId: string)
-
-// Disconnect a repository (removes webhook)
-disconnectRepository(repoId: string)
-
-// Check if repository is connected
-checkConnection(repoId: string): boolean
-```
-
-### Pull Request Actions (`actions/pulls.ts`)
-
-```typescript
-// Get PRs for a repository (paginated)
-getPullRequests(repoId: string, page: number, limit?: number)
-
-// Get PR with all suggestions
-getPullRequestWithSuggestions(pullId: string)
-
-// Update suggestion status (accept/reject)
-updateSuggestionStatus(suggestionId: string, status: 'accepted' | 'rejected')
-
-// Apply accepted suggestions to new branch and open PR
-applyAcceptedSuggestions(pullId: string, suggestions: Suggestion[])
-
-// Re-trigger AI review on a PR
-retriggerPrReview(pullId: string)
-```
-
-### CI Actions (`actions/ci.ts`)
-
-```typescript
-// Get CI failures for a repository
-getCiFailures(repoId: string)
-
-// Get specific CI failure with diagnosis
-getCiFailureById(ciFailureId: string)
-
-// Re-trigger CI analysis
-retriggerCiAnalysis(ciFailureId: string)
-
-// Apply CI patch to new branch and open PR
-applyCiPatch(ciFailureId: string)
-```
-
----
-
-## 📜 Available Scripts
-
-| Command                     | Description                          |
-| --------------------------- | ------------------------------------ |
-| `npm run dev`               | Start Next.js dev server (port 3000) |
-| `npm run build`             | Production build                     |
-| `npm run start`             | Start production server              |
-| `npm run lint`              | Run ESLint checks                    |
-| `npx prisma generate`       | Generate Prisma client               |
-| `npx prisma migrate dev`    | Create and apply new migration       |
-| `npx prisma migrate deploy` | Apply migrations in production       |
-| `npx prisma studio`         | Open Prisma database GUI             |
-| `npx prisma db push`        | Push schema changes (dev only)       |
-
----
-
-## 🌐 Deployment
-
-### Vercel (Recommended)
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-```
-
-**Environment variables:**
-Add all `.env` variables in Vercel dashboard under Project Settings > Environment Variables.
-
-### Docker
+#### Docker
 
 ```dockerfile
 FROM node:18-alpine
-
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --only=production
 
 COPY . .
-
 RUN npm run build
-RUN npx prisma generate
-RUN npx prisma migrate deploy
-
-EXPOSE 3000
 
 CMD ["npm", "start"]
 ```
 
+#### Database Migration in Production
+
 ```bash
-docker build -t d2p .
-docker run -p 3000:3000 --env-file .env.production d2p
-```
+# Run migrations
+npx prisma migrate deploy
 
-### Environment for Production
-
-Create `.env.production`:
-
-```env
-DATABASE_URL=postgresql://user:password@production-host/dbname?sslmode=require
-BETTER_AUTH_SECRET=production-secret-key
-BETTER_AUTH_URL=https://d2p.yourdomain.com
-GITHUB_CLIENT_ID=production-github-client-id
-GITHUB_CLIENT_SECRET=production-github-client-secret
-WEBHOOK_BASE_URL=https://d2p.yourdomain.com
-GCP_PROJECT_ID=production-gcp-project
-GCP_REGION=us-central1
-GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-service-account.json
+# Or: Reset and migrate (⚠️ Data loss!)
+npx prisma migrate reset
 ```
 
 ---
 
-## 📚 Key Implementation Details
+## 📊 Data Models
 
-### Security
+### User
 
-- **Webhook Verification**: HMAC-SHA256 signature validation on all incoming webhooks
-- **Rate Limiting**: GitHub API calls are rate-limited (use exponential backoff)
-- **Token Storage**: GitHub access tokens stored encrypted in database (via Better Auth)
-- **CORS**: API routes implement proper CORS for cross-origin requests
+- Authentication via Better Auth
+- Multiple OAuth providers support
+- Session management
+- Email verification
 
-### Performance Optimizations
+### Repository
 
-- **Diff Capping**: PR diffs capped at 500KB to prevent token explosion
-- **AI Prompt Limiting**: Diff content capped at 100KB before sending to Gemini
-- **CI Log Parsing**: Logs fetched as ZIP, extracted, and capped at 80KB total
-- **Database Pagination**: Repositories (12 per page), PRs (10 per page)
-- **Prisma Client Singleton**: Single client instance for all server-side operations
+- GitHub repo metadata
+- Webhook credentials
+- Connected repositories per user
+- Security scores & findings
 
-### Special Handling
+### PullRequest
 
-- **Self-review Prevention**: PR branches prefixed with `d2p/` are ignored (prevent loops)
-- **Suggestion Reset**: Suggestions reset when PR is updated unless already accepted
-- **Concurrent Reviews**: Multiple suggestions can be accepted and applied in parallel
-- **Retrigger Throttling**: Prevents spam by tracking last review timestamp
+- PR metadata (number, SHA, branches)
+- Review status tracking
+- Suggestions & security findings linked
+- Applied PR URLs
+
+### SecurityFinding
+
+- Finding type (secret, CVE, OWASP, dependency)
+- Severity levels (critical, high, medium, low)
+- Detailed metadata (CVE IDs, CVSS scores)
+- Package information (for CVE findings)
+
+### CiFailure
+
+- Workflow run metadata
+- Failure logs & analysis
+- AI-generated diagnosis
+- Suggested patches
+
+### Suggestion
+
+- Code improvement suggestions
+- Original vs suggested code
+- File location & line numbers
+- Application status tracking
+
+---
+
+## 🛠️ Development Guide
+
+### Adding New Security Scanner
+
+```typescript
+// lib/new-scanner.ts
+export type NewFinding = {
+  id: string;
+  severity: "critical" | "high" | "medium" | "low";
+  message: string;
+};
+
+export const scanForNewVulnerability = (
+  content: string,
+  filePath?: string,
+): NewFinding[] => {
+  // Implementation
+};
+```
+
+### Adding New AI Analysis
+
+1. Create new analysis file in `lib/ai-*.ts`
+2. Use Google Generative AI SDK
+3. Integrate in webhook handler
+4. Store results in database
+
+### Testing Webhooks Locally
+
+```bash
+# Using ngrok to expose local server
+ngrok http 3000
+
+# Update GitHub webhook URL to ngrok URL
+# Send test payload:
+curl -X POST http://localhost:3000/api/webhooks/github \
+  -H "X-GitHub-Event: pull_request" \
+  -H "X-Hub-Signature-256: sha256=..." \
+  -d '{...}'
+```
 
 ---
 
@@ -513,61 +685,80 @@ GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-service-account.json
 
 ### Common Issues
 
-**"Unknown argument: regenerate client" when running migrations**
+**Build Error: "Unterminated regexp literal"**
 
-- Regenerate Prisma client: `npx prisma generate`
-- Restart Next.js dev server
+- Check regex patterns in scanner files
+- Ensure all backslashes are properly escaped
+- Run `npm run build` to validate
+
+**Prisma Client Not Found**
+
+- Run `npx prisma generate`
 - Clear `.next` cache: `rm -rf .next`
 
-**Database connection timeout**
+**Webhook Signature Validation Fails**
 
-- Check `DATABASE_URL` syntax and connectivity
-- Ensure PostgreSQL is running
-- Try increasing timeout in connection string: `?statement_cache_size=0`
+- Verify webhook secret matches in GitHub settings
+- Check signature calculation in `verifySignature()`
 
-**GitHub OAuth fails**
+**CVE API Timeout**
 
-- Verify `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` are correct
-- Ensure authorization callback URL matches: `http://localhost:3000/api/auth/callback/github`
-- Check that GitHub OAuth app has `repo` scope enabled
+- Batch size may be too large
+- Reduce dependency count or increase timeout
+- Check OSV API status
 
-**Webhook not triggering**
+**AI Review Not Working**
 
-- Verify `WEBHOOK_BASE_URL` is correct (use ngrok for local dev)
-- Check webhook logs in GitHub repository settings
-- Ensure webhook signature secret matches `WEBHOOK_SECRET` in database
+- Verify `NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY` is set
+- Check Google Cloud API is enabled
+- Ensure billing is configured
 
-**AI suggestions not generating**
+---
 
-- Verify GCP credentials file exists and is valid
-- Check that Vertex AI API is enabled in Google Cloud Console
-- Ensure service account has **Vertex AI User** role
-- Check GCP project quota limits
+## 📈 Performance Optimization
 
-**SSE connection drops**
+### Database Queries
 
-- Increase client timeout settings
-- Check server logs for errors
-- Verify reverse proxy (if using) supports SSE
+- Indexed on frequently queried fields
+- Pagination for large result sets
+- Connection pooling via Prisma
+
+### API Calls
+
+- Batch CVE queries (1000 per request)
+- Webhook signature verification (timing-safe)
+- Rate limiting on AI API calls
+
+### Frontend
+
+- Code splitting with Next.js
+- Image optimization
+- CSS-in-JS with Tailwind
+- Component lazy loading
 
 ---
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create feature branch: `git checkout -b feature/new-scanner`
+3. Make changes with tests
+4. Submit pull request with description
+
+### Code Standards
+
+- TypeScript strict mode
+- ESLint configuration
+- Tailwind CSS for styling
+- Prisma for database queries
+
+## 📞 Support
+
+For issues, questions, or suggestions:
+
+- GitHub Issues: https://github.com/0x-rekt/D2P/issues
+- Email: kolaysowdarjya@gmail.com
 
 ---
 
-## 📄 License
-
-This project is open source. See the repository for license details.
-
----
-
-<div align="center">
-  <sub>Built with ❤️ using Next.js, Gemini AI, and the GitHub API</sub>
-</div>
+**Built with ❤️ for secure development**

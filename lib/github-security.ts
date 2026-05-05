@@ -61,10 +61,6 @@ export const createSecurityIssue = async (
   }
 };
 
-/**
- * Post a failing commit status to block PR merge
- * Uses GitHub Checks API for more detailed reporting
- */
 export const createCommitStatus = async (
   accessToken: string,
   repoFullName: string,
@@ -73,53 +69,63 @@ export const createCommitStatus = async (
   try {
     const [owner, repo] = repoFullName.split("/");
 
-    // First, create a check run
-    const checkResponse = await axios.post(
-      `https://api.github.com/repos/${owner}/${repo}/check-runs`,
-      {
-        name: options.name,
-        head_sha: options.headSha,
-        status: options.status,
-        conclusion: options.conclusion,
-        output: {
-          title: options.title || "Security Scan Failed",
-          summary: options.summary || "Critical security findings detected",
-          text: options.details,
-        },
-      },
-      {
-        headers: {
-          authorization: `token ${accessToken}`,
-          "X-GitHub-Api-Version": "2022-11-28",
-          Accept: "application/vnd.github+json",
-        },
-      },
-    );
-
-    console.log(`[GitHub] Check run created: ${checkResponse.data.id}`);
-
-    // Also set commit status for additional visibility
+    // Set commit status (works with OAuth token, sufficient for branch protection)
     if (options.conclusion === "failure") {
-      await axios.post(
-        `https://api.github.com/repos/${owner}/${repo}/statuses/${options.headSha}`,
-        {
-          state: "failure",
-          description: options.summary || "Critical security findings",
-          context: "D2P/security-scan",
-          target_url: `https://github.com/${owner}/${repo}/pull/${options.prNumber}`,
-        },
-        {
-          headers: {
-            authorization: `token ${accessToken}`,
-            "X-GitHub-Api-Version": "2022-11-28",
+      try {
+        await axios.post(
+          `https://api.github.com/repos/${owner}/${repo}/statuses/${options.headSha}`,
+          {
+            state: "failure",
+            description: options.summary || "Critical security findings",
+            context: "D2P/security-scan",
+            target_url: `https://github.com/${owner}/${repo}/pull/${options.prNumber}`,
           },
-        },
-      );
+          {
+            headers: {
+              authorization: `token ${accessToken}`,
+              "X-GitHub-Api-Version": "2022-11-28",
+            },
+          },
+        );
 
-      console.log(`[GitHub] Commit status set to failure`);
+        console.log(`[GitHub] Commit status set to failure`);
+      } catch (statusError: any) {
+        console.error(
+          `[GitHub] Failed to create commit status (${statusError.response?.status}):`,
+          statusError.response?.data?.message || statusError.message,
+        );
+        throw statusError;
+      }
+    } else if (options.conclusion === "success") {
+      // Set success status
+      try {
+        await axios.post(
+          `https://api.github.com/repos/${owner}/${repo}/statuses/${options.headSha}`,
+          {
+            state: "success",
+            description: options.summary || "Security scan passed",
+            context: "D2P/security-scan",
+            target_url: `https://github.com/${owner}/${repo}/pull/${options.prNumber}`,
+          },
+          {
+            headers: {
+              authorization: `token ${accessToken}`,
+              "X-GitHub-Api-Version": "2022-11-28",
+            },
+          },
+        );
+
+        console.log(`[GitHub] Commit status set to success`);
+      } catch (statusError: any) {
+        console.error(
+          `[GitHub] Failed to create commit status (${statusError.response?.status}):`,
+          statusError.response?.data?.message || statusError.message,
+        );
+        throw statusError;
+      }
     }
   } catch (error) {
-    console.error("Failed to create commit status:", error);
+    console.error("Error creating commit status:", error);
     throw error;
   }
 };
@@ -250,6 +256,63 @@ export const createFixPR = async (
   } catch (error) {
     console.error("Failed to create fix PR:", error);
     throw error;
+  }
+};
+
+/**
+ * Request changes on a PR review (blocks merge if reviews are required)
+ * Note: Can only be used on PRs not created by the authenticated user
+ */
+export const requestChangesOnPR = async (
+  accessToken: string,
+  repoFullName: string,
+  prNumber: number,
+  headSha: string,
+  body: string,
+): Promise<void> => {
+  try {
+    const [owner, repo] = repoFullName.split("/");
+
+    await axios.post(
+      `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/reviews`,
+      {
+        commit_id: headSha,
+        body: body,
+        event: "REQUEST_CHANGES",
+      },
+      {
+        headers: {
+          authorization: `token ${accessToken}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+          Accept: "application/vnd.github+json",
+        },
+      },
+    );
+
+    console.log(
+      `[GitHub] Review with requested changes posted on PR ${prNumber}`,
+    );
+  } catch (error: any) {
+    // Handle 422 - typically means PR author is the authenticated user
+    if (error.response?.status === 422) {
+      const errorMsg =
+        error.response?.data?.errors?.[0] ||
+        error.response?.data?.message ||
+        "";
+      if (errorMsg.includes("your own pull request")) {
+        console.log(
+          `[GitHub] Skipping review request on self-authored PR (will rely on commit status)`,
+        );
+        return;
+      }
+    }
+
+    // Log other errors but don't throw - this is a best-effort operation
+    const errorDetails =
+      error.response?.data?.errors ||
+      error.response?.data?.message ||
+      error.message;
+    console.warn(`[GitHub] Failed to request changes:`, errorDetails);
   }
 };
 

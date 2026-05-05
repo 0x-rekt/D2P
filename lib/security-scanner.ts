@@ -118,16 +118,22 @@ export const runSecurityScan = async (
   );
   console.log(`[Security Scan] Merge should be blocked: ${shouldBlockMerge}`);
 
-  await storeSecurityFindings(
-    repoId,
-    prNumber,
-    {
-      secrets: secretFindings,
-      cves: cveFindings,
-      owaslPatterns: correlatedOWASPFindings,
-    },
-    findingsBySeverity,
-  );
+  // Store findings but don't fail the entire scan if storage fails
+  try {
+    await storeSecurityFindings(
+      repoId,
+      prNumber,
+      {
+        secrets: secretFindings,
+        cves: cveFindings,
+        owaslPatterns: correlatedOWASPFindings,
+      },
+      findingsBySeverity,
+    );
+  } catch (storageError) {
+    console.error("Failed to store security findings:", storageError);
+    // Continue anyway - findings are still reported to GitHub
+  }
 
   await updateRepositorySecurityScore(repoId, {
     secrets: secretFindings,
@@ -342,8 +348,19 @@ async function storeSecurityFindings(
     console.log(
       `[Security Scan] Stored ${findings.secrets.length + findings.cves.length + findings.owaslPatterns.length} findings`,
     );
-  } catch (error) {
-    console.error(`Failed to store security findings:`, error);
+  } catch (error: any) {
+    // Log error but don't throw - storage failure shouldn't block security scan
+    const errorCode = error?.code;
+    const errorMessage = error?.message || String(error);
+
+    if (errorCode === "P1001") {
+      console.warn(
+        `[Security Scan] Database connection error (P1001): Cannot reach database. Security findings will still be reported to GitHub.`,
+      );
+    } else {
+      console.error(`Failed to store security findings:`, errorMessage);
+    }
+    // Don't rethrow - let findings go to GitHub even if storage fails
   }
 }
 

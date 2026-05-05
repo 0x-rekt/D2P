@@ -262,6 +262,34 @@ export const connectRepository = async (
       },
     });
 
+    // Set up branch protection on default branch
+    try {
+      await axios.put(
+        `https://api.github.com/repos/${owner}/${repo}/branches/${repoData.default_branch}/protection`,
+        {
+          required_status_checks: {
+            strict: true,
+            contexts: ["D2P/security-scan"],
+          },
+          enforce_admins: false,
+          required_pull_request_reviews: null,
+          restrictions: null,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user.accessToken}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        },
+      );
+      console.log(`[Branch Protection] Enabled for ${repoData.full_name}`);
+    } catch (error: any) {
+      console.warn(
+        `[Branch Protection] Failed to enable (may require admin):`,
+        error.response?.data?.message || error.message,
+      );
+    }
+
     return { success: true };
   } catch (error) {
     return { success: false, error: "Failed to connect repository" };

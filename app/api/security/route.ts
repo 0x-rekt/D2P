@@ -41,7 +41,7 @@ const buildDependencyUpgradeChanges = async (
 ) => {
   const [owner, repo] = repoFullName.split("/");
   const response = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/contents/package.json?ref=${encodeURIComponent(baseBranch)}`,
+    `https://api.github.com/repos/${owner}/${repo}/contents/package.json`,
     {
       headers: {
         authorization: `token ${accessToken}`,
@@ -250,7 +250,6 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // Verify user owns the repository
     const repo = await prisma.repository.findFirst({
       where: {
         id: repoId,
@@ -273,14 +272,12 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // Create GitHub issue
     const issueResult = await createSecurityIssue(accessToken, repo.fullName, {
       title,
       body: description || "Security findings detected by D2P",
       labels: severity ? [`security`, `severity/${severity}`] : ["security"],
     });
 
-    // Update findings with issue ID
     if (findingIds && Array.isArray(findingIds)) {
       await prisma.securityFinding.updateMany({
         where: {
@@ -308,10 +305,6 @@ export const POST = async (req: NextRequest) => {
   }
 };
 
-/**
- * POST /api/security/create-fix-pr
- * Create an auto-fix PR for secrets rotation or dependency upgrade
- */
 export const POST_CreateFixPR = async (req: NextRequest) => {
   try {
     const session = await auth.api.getSession({
