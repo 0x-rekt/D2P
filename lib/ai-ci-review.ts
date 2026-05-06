@@ -1,14 +1,10 @@
-import { GoogleGenAI } from "@google/genai";
 import axios from "axios";
 import prisma from "@/lib/prisma";
+import { OpenAI } from "openai";
 
-const ai = new GoogleGenAI({
-  vertexai: true,
-  project: process.env.GCP_PROJECT_ID!,
-  location: process.env.GCP_REGION!,
-  googleAuthOptions: {
-    credentials: JSON.parse(process.env.GCP_SERVICE_ACCOUNT_KEY || "{}"),
-  },
+const ai = new OpenAI({
+  baseURL: "https://router.huggingface.co/v1",
+  apiKey: process.env.HF_TOKEN,
 });
 
 type CiPatch = {
@@ -173,12 +169,13 @@ Rules:
 - Maximum 5 patches`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: { temperature: 0.1 },
+    const response = await ai.chat.completions.create({
+      model: "Qwen/Qwen3-Coder-480B-A35B-Instruct:novita",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.2,
+      max_tokens: 4000,
     });
-    const text = response.text ?? "";
+    const text = response.choices[0].message.content as string;
     const cleaned = text
       .replace(/^```(?:json)?\s*/i, "")
       .replace(/\s*```\s*$/, "")

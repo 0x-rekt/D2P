@@ -255,6 +255,20 @@ export const POST = async (req: NextRequest) => {
           ).catch((error) => {
             console.error("Error posting security comment:", error);
           });
+        } else {
+          // Report success status when no critical findings
+          await createCommitStatus(accessToken, repo.fullName, {
+            name: "D2P Security Scan",
+            headSha: pr.head.sha,
+            status: "completed",
+            conclusion: "success",
+            title: "Security Scan Passed",
+            summary: `Scan complete: ${securityResult.criticalFindings} critical, ${securityResult.highFindings} high, ${securityResult.mediumFindings} medium findings`,
+            details: "Security scan completed successfully",
+            prNumber: pr.number,
+          }).catch((error) => {
+            console.error("Error creating success commit status:", error);
+          });
         }
       }
     } catch (error) {
