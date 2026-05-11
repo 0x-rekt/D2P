@@ -1,17 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import SignInBtn from "@/components/SignInBtn";
 import { useSession } from "@/lib/auth-client";
-
-const ThreeDBackground = dynamic(() => import("./ThreeDBackground"), {
-  ssr: false,
-});
 
 const Hero = () => {
   const { data: session } = useSession();
@@ -31,10 +26,6 @@ const Hero = () => {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] px-4 pt-24 pb-16 sm:pt-28 sm:pb-20">
-      {/* 3D Background */}
-      <div className="absolute inset-0 opacity-[0.15] pointer-events-none">
-        <ThreeDBackground />
-      </div>
 
       {/* Animated Background Glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
