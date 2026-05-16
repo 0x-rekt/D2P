@@ -12,7 +12,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  GitPullRequest,
   Shield,
 } from "lucide-react";
 
@@ -108,22 +107,7 @@ const CiFailuresPage = async ({ params, searchParams }: PageProps) => {
 
         {/* Tab navigation */}
         <div className="mb-8 flex items-center gap-2 border-b border-white/[0.06] pb-4 overflow-x-auto">
-          <Link
-            href={`/dashboard/repos/${repoId}`}
-            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-transparent px-4 py-1.5 text-xs font-medium text-gray-500 hover:border-blue-500/30 hover:bg-blue-500/[0.08] hover:text-blue-400 transition-all whitespace-nowrap"
-          >
-            <GitPullRequest size={13} />
-            Pull Requests
-          </Link>
-          <span className="flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs font-semibold text-red-400 whitespace-nowrap">
-            <Activity size={13} />
-            CI Failures
-            {(total ?? 0) > 0 && (
-              <span className="ml-0.5 rounded-full bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-400">
-                {total}
-              </span>
-            )}
-          </span>
+          
           <Link
             href={`/dashboard/repos/${repoId}/security`}
             className="flex items-center gap-1.5 rounded-full border border-white/10 bg-transparent px-4 py-1.5 text-xs font-medium text-gray-500 hover:border-blue-500/30 hover:bg-blue-500/[0.08] hover:text-blue-400 transition-all whitespace-nowrap"
@@ -136,6 +120,16 @@ const CiFailuresPage = async ({ params, searchParams }: PageProps) => {
               </span>
             )}
           </Link>
+
+          <span className="flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs font-semibold text-red-400 whitespace-nowrap">
+            <Activity size={13} />
+            CI Failures
+            {(total ?? 0) > 0 && (
+              <span className="ml-0.5 rounded-full bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-400">
+                {total}
+              </span>
+            )}
+          </span>
         </div>
 
         {/* Content */}

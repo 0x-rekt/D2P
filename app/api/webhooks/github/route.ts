@@ -1,5 +1,5 @@
 import { analyzePullRequestWithAI } from "@/lib/ai-review";
-import { runSecurityScan } from "@/lib/security-scanner";
+import { runSecurityScan, handleD2PFixPRMerge } from "@/lib/security-scanner";
 import {
   createCommitStatus,
   postSecurityComment,
@@ -102,6 +102,40 @@ export const POST = async (req: NextRequest) => {
       where: { repositoryId: repo.id, prNumber: pr.number },
       data: { state: newState },
     });
+
+    // Handle D2P fix PR merges
+    if (pr.merged && pr.head.ref.startsWith("d2p/fix-")) {
+      try {
+        // Extract fixType from branch name (d2p/fix-{fixType}-{timestamp})
+        const branchParts = pr.head.ref.split("-");
+        if (branchParts.length >= 3) {
+          const fixType = branchParts[2]; // e.g., "dependency" from "d2p/fix-dependency_upgrade-123"
+          
+          if (
+            fixType === "dependency_upgrade" ||
+            fixType.startsWith("dependency")
+          ) {
+            await handleD2PFixPRMerge(repo.id, "dependency_upgrade");
+            console.log(
+              `[Webhook] Marked dependency_upgrade findings as fixed for repo ${repo.id}`,
+            );
+          } else if (
+            fixType === "secret_rotation" ||
+            fixType.startsWith("secret")
+          ) {
+            await handleD2PFixPRMerge(repo.id, "secret_rotation");
+            console.log(
+              `[Webhook] Marked secret_rotation findings as fixed for repo ${repo.id}`,
+            );
+          }
+        }
+      } catch (error) {
+        console.error(
+          "[Webhook] Error handling D2P fix PR merge:",
+          error,
+        );
+      }
+    }
 
     return NextResponse.json({ success: true, message: "Pull request closed" });
   }

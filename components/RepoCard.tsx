@@ -100,7 +100,7 @@ export const RepoCard = ({ repo, isConnected }: RepoCardProps) => {
         <div className="flex items-center gap-2">
           {isConnected && repo.connectedRepoId && (
             <Link
-              href={`/dashboard/repos/${repo.connectedRepoId}`}
+              href={`/dashboard/repos/${repo.connectedRepoId}/security`}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 transition-all"
             >
               Open Dashboard

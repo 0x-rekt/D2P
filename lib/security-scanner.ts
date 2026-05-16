@@ -109,6 +109,7 @@ export const runSecurityScan = async (
 
   const shouldBlockMerge =
     findingsBySeverity.critical > 0 ||
+    findingsBySeverity.high > 0 ||
     cveFindings.some(
       (cve) => cve.severity === "critical" && cve.cvssScore >= 9,
     );
@@ -441,5 +442,80 @@ async function updateRepositorySecurityScore(
     }
   } catch (error) {
     console.error(`Failed to update security score:`, error);
+  }
+}
+
+export async function handleD2PFixPRMerge(
+  repoId: string,
+  fixType: "secret_rotation" | "dependency_upgrade",
+) {
+  try {
+    console.log(
+      `[D2P Fix PR] Processing merged fix PR for repo ${repoId} with fixType: ${fixType}`,
+    );
+
+    // Mark all open findings of this fixType as fixed
+    const updated = await prisma.securityFinding.updateMany({
+      where: {
+        repositoryId: repoId,
+        fixType,
+        status: "open",
+        fixable: true,
+      },
+      data: { status: "fixed" },
+    });
+
+    console.log(
+      `[D2P Fix PR] Marked ${updated.count} findings as fixed for repo ${repoId}`,
+    );
+
+    // Recalculate the repository security score
+    const allFindings = await prisma.securityFinding.findMany({
+      where: {
+        repositoryId: repoId,
+        status: "open", // Only count open findings for the score
+      },
+    });
+
+    // Group findings by type and severity
+    const secrets = allFindings
+      .filter((f) => f.findingType === "secret")
+      .map((f) => ({
+        severity: f.severity as "critical" | "high",
+        description: f.title,
+      }));
+
+    const cves = allFindings
+      .filter((f) => f.findingType === "cve")
+      .map((f) => ({
+        severity: f.severity as "critical" | "high" | "medium" | "low",
+        cvssScore: f.cvssScore || 0,
+      }));
+
+    const owasp = allFindings
+      .filter((f) => f.findingType === "owasp")
+      .map((f) => ({
+        severity: f.severity as "critical" | "high" | "medium",
+        cvssScore: f.cvssScore || 0,
+      }));
+
+    // Recalculate score with updated findings
+    await updateRepositorySecurityScore(repoId, {
+      secrets,
+      cves,
+      owasp,
+    });
+
+    console.log(
+      `[D2P Fix PR] Security score recalculated for repo ${repoId}`,
+    );
+
+    return updated;
+  } catch (error) {
+    console.error(
+      `[D2P Fix PR] Failed to handle fix PR merge for repo ${repoId}:`,
+      error,
+    );
+    throw error;
   }
 }

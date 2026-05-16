@@ -64,8 +64,8 @@ const SECRET_PATTERNS = {
     pattern:
       /(api_key|API_KEY|apikey)\s*[=:]\s*['\"]?([A-Za-z0-9]{32,})['\"]?/gi,
     type: "api_key",
-    severity: "high" as const,
-    description: "Potential API key found",
+    severity: "critical" as const,
+    description: "Hardcoded API key found - potential credential compromise",
   },
   jwt_token: {
     pattern:

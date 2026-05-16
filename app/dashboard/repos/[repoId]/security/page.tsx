@@ -12,8 +12,8 @@ import { SecurityFindingCard } from "@/components/SecurityFindingCard";
 import {
   Shield,
   ChevronLeft,
+  ChevronRight,
   ExternalLink,
-  GitPullRequest,
   Activity,
   AlertCircle,
   CheckCircle2,
@@ -22,7 +22,7 @@ import {
 
 type PageProps = {
   params: Promise<{ repoId: string }>;
-  searchParams: Promise<{ status?: string; sort?: string }>;
+  searchParams: Promise<{ status?: string; sort?: string; page?: string }>;
 };
 
 interface SecurityFinding {
@@ -81,8 +81,10 @@ const SecurityInsightsPage = async ({ params, searchParams }: PageProps) => {
   if (!session?.user) redirect("/");
 
   const { repoId } = await params;
-  const { status: statusFilter = "all", sort: sortBy = "severity" } =
+  const { status: statusFilter = "all", sort: sortBy = "severity", page: pageParam } =
     await searchParams;
+  const page = Math.max(1, parseInt(pageParam || "1", 10));
+  const limit = 10;
 
   try {
     const [findingsData, scoreData] = await Promise.all([
@@ -128,6 +130,16 @@ const SecurityInsightsPage = async ({ params, searchParams }: PageProps) => {
       owasp: findings.filter((f) => f.findingType === "owasp").length,
     };
 
+    // Pagination
+    const total = filteredFindings.length;
+    const totalPages = total ? Math.ceil(total / limit) : 1;
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+    const paginatedFindings = filteredFindings.slice(
+      (page - 1) * limit,
+      page * limit,
+    );
+
     return (
       <section className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] py-14 sm:py-20">
         <SecurityStatusWatcher
@@ -162,83 +174,114 @@ const SecurityInsightsPage = async ({ params, searchParams }: PageProps) => {
                 </h1>
               </div>
               <p className="mt-1 truncate text-xs text-gray-600 pl-10">
-                Security analysis and vulnerability findings
-              </p>
+              {findings.length} security finding{findings.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <a
+            href={findings[0]?.pullRequest?.title ? `https://github.com/search?q=repo:${findings[0].pullRequest.title}` : "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+          >
+            <ExternalLink size={12} />
+            View on GitHub
+          </a>
+        </div>
+
+        {/* Tab navigation */}
+        <div className="mb-8 flex items-center gap-2 border-b border-white/[0.06] pb-4 overflow-x-auto">
+          
+          <span className="flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-400 whitespace-nowrap">
+            <Shield size={13} />
+            Security
+            {findings.length > 0 && (
+              <span className="ml-0.5 rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[10px] text-blue-400">
+                {findings.length}
+              </span>
+            )}
+          </span>
+
+          <Link
+            href={`/dashboard/repos/${repoId}/ci`}
+            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-transparent px-4 py-1.5 text-xs font-medium text-gray-500 hover:border-red-500/30 hover:bg-red-500/[0.08] hover:text-red-400 transition-all whitespace-nowrap"
+          >
+            <Activity size={13} />
+            CI Failures
+          </Link>
+        </div>
+
+        {fixableDependencyFindingIds.length > 0 && (
+          <div className="mb-8">
+            <SecurityFixPrButton
+              repoId={repoId}
+              findingIds={fixableDependencyFindingIds}
+            />
+          </div>
+        )}
+
+        {/* Security Score Cards */}
+        {score && (
+          <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Overall Score */}
+            <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-medium text-gray-400">
+                  Overall Score
+                </h3>
+                <TrendingUp size={14} className="text-blue-400" />
+              </div>
+              <div className="text-4xl font-black text-white mb-1">
+                {score.overallScore}
+              </div>
+              <div className="text-xs text-gray-500">
+                {score.overallScore >= 80
+                  ? "Excellent"
+                  : score.overallScore >= 60
+                    ? "Good"
+                    : "Needs Attention"}
+              </div>
+            </div>
+
+            {/* Secrets Score */}
+            <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
+              <div className="text-xs font-medium text-gray-400 mb-3">
+                🔑 Secrets
+              </div>
+              <div className="text-4xl font-black text-white mb-1">
+                {score.secretScore}
+              </div>
+              <div className="text-[10px] text-gray-500">
+                {findingsByType.secret} potential leaks
+              </div>
+            </div>
+
+            {/* CVE Score */}
+            <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
+              <div className="text-xs font-medium text-gray-400 mb-3">
+                📦 Dependencies
+              </div>
+              <div className="text-4xl font-black text-white mb-1">
+                {score.cveScore}
+              </div>
+              <div className="text-[10px] text-gray-500">
+                {findingsByType.cve} CVE findings
+              </div>
+            </div>
+
+            {/* OWASP Score */}
+            <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
+              <div className="text-xs font-medium text-gray-400 mb-3">
+                ⚠️ OWASP Issues
+              </div>
+              <div className="text-4xl font-black text-white mb-1">
+                {score.owaslScore}
+              </div>
+              <div className="text-[10px] text-gray-500">
+                {findingsByType.owasp} code issues
+              </div>
             </div>
           </div>
-
-          {fixableDependencyFindingIds.length > 0 && (
-            <div className="mb-8">
-              <SecurityFixPrButton
-                repoId={repoId}
-                findingIds={fixableDependencyFindingIds}
-              />
-            </div>
-          )}
-
-          {/* Security Score Cards */}
-          {score && (
-            <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {/* Overall Score */}
-              <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs font-medium text-gray-400">
-                    Overall Score
-                  </h3>
-                  <TrendingUp size={14} className="text-blue-400" />
-                </div>
-                <div className="text-4xl font-black text-white mb-1">
-                  {score.overallScore}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {score.overallScore >= 80
-                    ? "Excellent"
-                    : score.overallScore >= 60
-                      ? "Good"
-                      : "Needs Attention"}
-                </div>
-              </div>
-
-              {/* Secrets Score */}
-              <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
-                <div className="text-xs font-medium text-gray-400 mb-3">
-                  🔑 Secrets
-                </div>
-                <div className="text-4xl font-black text-white mb-1">
-                  {score.secretScore}
-                </div>
-                <div className="text-[10px] text-gray-500">
-                  {findingsByType.secret} potential leaks
-                </div>
-              </div>
-
-              {/* CVE Score */}
-              <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
-                <div className="text-xs font-medium text-gray-400 mb-3">
-                  📦 Dependencies
-                </div>
-                <div className="text-4xl font-black text-white mb-1">
-                  {score.cveScore}
-                </div>
-                <div className="text-[10px] text-gray-500">
-                  {findingsByType.cve} CVE findings
-                </div>
-              </div>
-
-              {/* OWASP Score */}
-              <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
-                <div className="text-xs font-medium text-gray-400 mb-3">
-                  ⚠️ OWASP Issues
-                </div>
-                <div className="text-4xl font-black text-white mb-1">
-                  {score.owaslScore}
-                </div>
-                <div className="text-[10px] text-gray-500">
-                  {findingsByType.owasp} code issues
-                </div>
-              </div>
-            </div>
-          )}
+        )}
 
           {/* Severity Summary */}
           <div className="mb-10 rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
@@ -332,17 +375,47 @@ const SecurityInsightsPage = async ({ params, searchParams }: PageProps) => {
           ) : (
             <div className="space-y-3">
               <p className="text-xs text-gray-600 mb-4">
-                {filteredFindings.length} finding
-                {filteredFindings.length !== 1 ? "s" : ""} found
+                {total} finding
+                {total !== 1 ? "s" : ""} found
               </p>
 
-              {filteredFindings.map((finding) => (
+              {paginatedFindings.map((finding) => (
                 <SecurityFindingCard
                   key={finding.id}
                   {...finding}
                   repoId={repoId}
                 />
               ))}
+
+              {totalPages > 1 && (
+                <div className="mt-8 flex items-center justify-center gap-3 pt-4">
+                  {hasPrevPage ? (
+                    <Link
+                      href={`?status=${statusFilter}&sort=${sortBy}&page=${page - 1}`}
+                      className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+                    >
+                      <ChevronLeft size={13} />
+                      Previous
+                    </Link>
+                  ) : (
+                    <div className="w-24" />
+                  )}
+                  <span className="text-xs text-gray-600">
+                    {page} / {totalPages}
+                  </span>
+                  {hasNextPage ? (
+                    <Link
+                      href={`?status=${statusFilter}&sort=${sortBy}&page=${page + 1}`}
+                      className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+                    >
+                      Next
+                      <ChevronRight size={13} />
+                    </Link>
+                  ) : (
+                    <div className="w-24" />
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
