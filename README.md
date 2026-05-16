@@ -107,6 +107,30 @@ Automatically scan GitHub repositories for security vulnerabilities, code qualit
 
 ---
 
+## ✅ Implementation Status
+
+**Core Features (Production Ready):**
+
+- ✅ Secrets Detection - Pattern & entropy-based
+- ✅ CVE Scanning - OSV API integration
+- ✅ OWASP Pattern Detection - 8+ vulnerability patterns
+- ✅ Security Scoring - Comprehensive scoring system
+- ✅ GitHub Integration - Webhooks & PR comments
+- ✅ AI Code Review - Gemini integration
+- ✅ CI Failure Diagnosis - Workflow log analysis
+- ✅ Suggestion Application - Auto PR creation
+- ✅ Dashboard - Repository & findings overview
+- ✅ Authentication - Better Auth with GitHub OAuth
+
+**Optional Enhancements:**
+
+- 🔄 Custom security rules
+- 🔄 Integrations with Slack/Teams
+- 🔄 Custom webhook handlers
+- 🔄 Advanced filtering & search
+
+---
+
 ## 🏗️ Architecture
 
 ### Technology Stack
@@ -118,8 +142,7 @@ Automatically scan GitHub repositories for security vulnerabilities, code qualit
 - TypeScript 5
 - Tailwind CSS 4
 - Radix UI components
-- Framer Motion (animations)
-- Three.js (3D backgrounds)
+- Framer Motion (animations & transitions)
 
 **Backend & Database:**
 
@@ -282,6 +305,34 @@ D2P/
 
 ---
 
+## 📡 API Endpoints
+
+### Webhooks
+
+- **`POST /api/webhooks/github`** - Main GitHub webhook for PR events (opened, synchronize, closed)
+- **`POST /api/webhooks/github-ci`** - GitHub Actions workflow completion events
+
+### Authentication
+
+- **`POST /api/auth/signin`** - Sign in with GitHub
+- **`POST /api/auth/signout`** - Sign out current user
+- **`GET /api/auth/session`** - Get current session info
+
+### Security Analysis
+
+- **`GET /api/security/[...params]`** - Query security findings for a repository
+- **`GET /api/security-status/[repoId]`** - Get repository security score and status
+
+### CI/CD
+
+- **`GET /api/ci-status/[ciFailureId]`** - Get CI failure diagnosis and suggested fixes
+
+### Pull Requests
+
+- **`GET /api/review-status/[pullId]`** - Get PR review status and suggestions
+
+---
+
 ## 🔄 Core Workflows
 
 ### 1. **Repository Connection Flow**
@@ -413,20 +464,26 @@ Update dashboard
 
 1. **Pattern-based Detection**
    - Regular expressions for known secret formats
-   - Multiple patterns for each secret type
+   - Multiple patterns for each secret type:
+     - AWS credentials (AKIA... prefixed keys)
+     - GitHub tokens (ghp_... or github_pat_...)
+     - Private keys (RSA, SSH, PGP)
+     - Docker registry credentials
+     - API tokens (Slack, NPM, SendGrid, etc.)
    - Test value filtering (to ignore mock credentials)
 
 2. **Entropy-based Detection**
    - Analyzes randomness in extracted strings
    - Shannon entropy calculation
-   - Configurable entropy threshold
+   - Configurable entropy threshold (default: 4.0)
    - Filters common non-secret patterns
 
 3. **Context Filtering**
-   - Skips test directories (`node_modules`, `dist`, `build`)
+   - Skips test directories (`node_modules`, `dist`, `build`, `test`)
    - Ignores documentation files (`.md`, `.txt`)
    - Skips lock files and config files
-   - Filters mock/test data
+   - Filters mock/test data and example values
+   - Excludes commented-out code
 
 ### CVE Scanning
 
@@ -462,6 +519,30 @@ Detects 8+ OWASP Top 10 patterns including:
 
 ---
 
+## ⚡ Quick Start
+
+Get D2P running in 5 minutes:
+
+```bash
+# 1. Clone and install
+git clone https://github.com/0x-rekt/D2P.git
+cd D2P
+npm install
+
+# 2. Setup database
+createdb d2p
+npx prisma migrate dev
+
+# 3. Create .env.local with required variables (see Setup section below)
+
+# 4. Start development server
+npm run dev
+
+# 5. Visit http://localhost:3000
+```
+
+---
+
 ## 🚀 Setup & Deployment
 
 ### Prerequisites
@@ -494,20 +575,28 @@ Detects 8+ OWASP Top 10 patterns including:
    DATABASE_URL="postgresql://user:password@localhost:5432/d2p"
 
    # GitHub OAuth/App
+   # Get from https://github.com/settings/developers
    GITHUB_CLIENT_ID=your_github_client_id
    GITHUB_CLIENT_SECRET=your_github_client_secret
    GITHUB_WEBHOOK_SECRET=your_webhook_secret
 
-   # Better Auth
-   BETTER_AUTH_SECRET=your_secret_min_32_chars
+   # Better Auth - Must be at least 32 characters
+   BETTER_AUTH_SECRET=your_secret_min_32_chars_for_auth_encryption
    BETTER_AUTH_URL=http://localhost:3000
 
-   # Google AI
-   NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY=your_api_key
+   # Google Generative AI (Gemini) - Get from https://ai.google.dev/
+   GOOGLE_GENERATIVE_AI_API_KEY=your_google_ai_api_key
 
-   # Optional: AI Review toggle
+   # Optional: AI Review features
    ENABLE_AI_REVIEW=true
    ```
+
+   **Environment Variable Details:**
+
+   - `DATABASE_URL`: PostgreSQL connection string. Local format: `postgresql://postgres:password@localhost:5432/d2p`
+   - `GITHUB_WEBHOOK_SECRET`: Used to verify webhook signatures from GitHub (HMAC-SHA256)
+   - `BETTER_AUTH_SECRET`: Encryption key for sessions (generate with `openssl rand -base64 32`)
+   - `GOOGLE_GENERATIVE_AI_API_KEY`: For AI-powered code review and CI failure diagnosis
 
 4. **Database Setup**
 
@@ -546,10 +635,20 @@ Detects 8+ OWASP Top 10 patterns including:
    - Push
    - Workflow run
 4. Configure permissions:
-   - Pull requests: Read & write
-   - Contents: Read
-   - Commit statuses: Read & write
-   - Issues: Read & write
+   - Pull requests: Read & write (for PR comments and status)
+   - Contents: Read (for accessing file content in PRs)
+   - Commit statuses: Read & write (for commit status checks)
+   - Issues: Read & write (for creating issues)
+   - Workflows: Read (for accessing workflow logs)
+5. Under "Where can this GitHub App be installed?", select "Only on this account" for development
+6. Generate a private key and store it securely
+7. Install the app on your repositories
+
+**Webhook Security:**
+
+- Generate a strong webhook secret (min 128 bits): `openssl rand -hex 32`
+- Set this as `GITHUB_WEBHOOK_SECRET` in your environment
+- D2P verifies all webhook signatures using HMAC-SHA256 (timing-safe comparison)
 
 ### Production Deployment
 
@@ -594,47 +693,117 @@ npx prisma migrate reset
 
 ## 📊 Data Models
 
+### Database Schema Overview
+
+```
+User (1) ──────┐
+    │          │
+    ├─ (M) Session
+    ├─ (M) Account
+    └─ (M) Repository ──┐
+                        │
+                   (M) PullRequest ──┐
+                        │            │
+                        ├─ (M) Suggestion
+                        └─ (M) SecurityFinding
+    
+    Repository ──┐
+                 ├─ (1) RepositorySecurityScore
+                 └─ (M) CiFailure
+```
+
 ### User
 
-- Authentication via Better Auth
-- Multiple OAuth providers support
-- Session management
-- Email verification
+- **id**: Unique identifier
+- **email**: User email (unique)
+- **name**: Display name
+- **emailVerified**: Email verification status
+- **image**: Profile picture URL
+- **Relations**: Sessions, Accounts, Repositories
 
 ### Repository
 
-- GitHub repo metadata
-- Webhook credentials
-- Connected repositories per user
-- Security scores & findings
+- **id**: UUID
+- **repoGithubId**: GitHub repository ID (unique)
+- **fullName**: Repository full name (e.g., "owner/repo")
+- **name**: Repository name
+- **webhookSecret**: HMAC secret for webhook signature verification
+- **private**: Whether repository is private
+- **userId**: Owner user ID
+- **Relations**: User, PullRequests, SecurityFindings, CiFailures, RepositorySecurityScore
 
 ### PullRequest
 
-- PR metadata (number, SHA, branches)
-- Review status tracking
-- Suggestions & security findings linked
-- Applied PR URLs
+- **id**: UUID
+- **prNumber**: GitHub PR number
+- **prGithubId**: GitHub PR ID (unique)
+- **title**: PR title
+- **body**: PR description
+- **state**: Current state (open/closed)
+- **headSha**: Latest commit SHA
+- **baseBranch**: Target branch
+- **headBranch**: Source branch
+- **authorLogin**: GitHub username of author
+- **reviewStatus**: Review status (pending/analyzed/applied)
+- **appliedPrUrl**: Link to fix PR if suggestion was applied
+- **Relations**: Repository, Suggestions, SecurityFindings
 
 ### SecurityFinding
 
-- Finding type (secret, CVE, OWASP, dependency)
-- Severity levels (critical, high, medium, low)
-- Detailed metadata (CVE IDs, CVSS scores)
-- Package information (for CVE findings)
+- **id**: UUID
+- **findingType**: Type (secret, CVE, OWASP, dependency)
+- **severity**: Level (critical, high, medium, low)
+- **message**: Human-readable finding description
+- **cvssScore**: CVE CVSS score (if applicable)
+- **cveId**: CVE identifier (if applicable)
+- **packageName**: Affected package (for CVE findings)
+- **Relations**: Repository, PullRequest
 
 ### CiFailure
 
-- Workflow run metadata
-- Failure logs & analysis
-- AI-generated diagnosis
-- Suggested patches
+- **id**: UUID
+- **workflowName**: GitHub Actions workflow name
+- **runId**: GitHub workflow run ID
+- **failureReason**: Error summary
+- **logs**: Full workflow logs
+- **diagnosis**: AI-generated root cause analysis
+- **suggestedFix**: Proposed patch or fix
+- **fixPrUrl**: Link to auto-created fix PR (if applicable)
+- **Relations**: Repository
 
 ### Suggestion
 
-- Code improvement suggestions
-- Original vs suggested code
-- File location & line numbers
-- Application status tracking
+- **id**: UUID
+- **type**: Suggestion type (code-improvement, security, performance, etc.)
+- **severity**: Importance level
+- **filePath**: File path in repository
+- **startLine**: Start line number
+- **endLine**: End line number
+- **originalCode**: Original code snippet
+- **suggestedCode**: Suggested replacement
+- **status**: Status (pending, applied, dismissed)
+- **Relations**: PullRequest
+
+### RepositorySecurityScore
+
+- **id**: UUID
+- **overallScore**: Comprehensive security score (0-100)
+- **secretsScore**: Secrets detection score
+- **cvesScore**: CVE/dependency score
+- **owaspScore**: OWASP pattern score
+- **lastUpdated**: Last scan timestamp
+- **Relations**: Repository
+
+---
+
+## 📜 Available npm Scripts
+
+```bash
+npm run dev         # Start development server with hot reload (http://localhost:3000)
+npm run build       # Build for production with Turbopack
+npm start           # Start production server
+npm run lint        # Run ESLint to check code quality
+```
 
 ---
 
@@ -667,17 +836,43 @@ export const scanForNewVulnerability = (
 
 ### Testing Webhooks Locally
 
-```bash
-# Using ngrok to expose local server
-ngrok http 3000
+1. **Setup ngrok tunnel**
 
-# Update GitHub webhook URL to ngrok URL
-# Send test payload:
-curl -X POST http://localhost:3000/api/webhooks/github \
-  -H "X-GitHub-Event: pull_request" \
-  -H "X-Hub-Signature-256: sha256=..." \
-  -d '{...}'
-```
+   ```bash
+   # Install ngrok: https://ngrok.com/download
+   ngrok http 3000
+   # This will give you a URL like https://xxxx-xx-xxx-xx-xx.ngrok.io
+   ```
+
+2. **Update GitHub webhook**
+
+   - Go to Repository Settings → Webhooks
+   - Update Payload URL to your ngrok URL: `https://xxxx-xx-xxx-xx-xx.ngrok.io/api/webhooks/github`
+   - Keep webhook secret the same
+
+3. **Test with actual GitHub events**
+
+   - Create a PR in your test repository
+   - Check logs: `npm run dev` output should show webhook events
+   - Verify database entries created with: `psql d2p`
+
+4. **Manual webhook testing**
+
+   ```bash
+   # Generate valid signature
+   SECRET="your_webhook_secret"
+   PAYLOAD='{"action":"opened","pull_request":{"number":1,"id":123456},"repository":{"id":987654}}'
+   
+   SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" -hex | cut -d' ' -f2)
+   SIGNATURE="sha256=$SIGNATURE"
+   
+   # Send test request
+   curl -X POST http://localhost:3000/api/webhooks/github \
+     -H "X-GitHub-Event: pull_request" \
+     -H "X-Hub-Signature-256: $SIGNATURE" \
+     -H "Content-Type: application/json" \
+     -d "$PAYLOAD"
+   ```
 
 ---
 
@@ -709,9 +904,34 @@ curl -X POST http://localhost:3000/api/webhooks/github \
 
 **AI Review Not Working**
 
-- Verify `NEXT_PUBLIC_GOOGLE_CLOUD_TTS_API_KEY` is set
-- Check Google Cloud API is enabled
-- Ensure billing is configured
+- Verify `GOOGLE_GENERATIVE_AI_API_KEY` is set in `.env.local`
+- Check Google Generative AI API is enabled in Google Cloud Console
+- Ensure billing is configured for your Google Cloud project
+- Verify API key has proper permissions
+- Test with: `curl -X POST https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent -H "x-goog-api-key: YOUR_KEY"`
+
+**Database Connection Errors**
+
+- Ensure PostgreSQL is running: `sudo systemctl status postgresql`
+- Verify DATABASE_URL is correct
+- Check database exists: `psql postgres -c "\\l"`
+- Try recreating database: `dropdb d2p && createdb d2p && npx prisma migrate dev`
+
+**Port 3000 Already in Use**
+
+```bash
+# Kill process using port 3000
+npx lsof -i :3000  # Find process ID
+kill -9 <PID>      # Kill the process
+# Or use a different port
+npm run dev -- -p 3001
+```
+
+**Next.js Compilation Errors**
+
+- Clear all caches: `rm -rf .next node_modules && npm install`
+- Check TypeScript errors: `npx tsc --noEmit`
+- Verify all imports are correct (check file paths)
 
 ---
 
