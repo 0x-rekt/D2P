@@ -27,18 +27,10 @@ const Hero = () => {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] px-4 pt-24 pb-16 sm:pt-28 sm:pb-20">
 
-      {/* Animated Background Glows */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], opacity: [0.15, 0.25, 0.15] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-[20%] left-1/4 h-[400px] w-[600px] sm:h-[600px] sm:w-[900px] rounded-full bg-gradient-to-b from-blue-600 to-indigo-600 blur-[120px] sm:blur-[140px]"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-1/4 right-1/4 h-[300px] w-[500px] sm:h-[500px] sm:w-[800px] rounded-full bg-gradient-to-t from-purple-600 to-pink-600 blur-[100px] sm:blur-[130px]"
-        />
+      {/* Static Background Glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute -top-[20%] left-1/4 h-[400px] w-[600px] sm:h-[600px] sm:w-[900px] rounded-full bg-gradient-to-b from-blue-600 to-indigo-600 blur-[120px] sm:blur-[140px] opacity-20" />
+        <div className="absolute bottom-1/4 right-1/4 h-[300px] w-[500px] sm:h-[500px] sm:w-[800px] rounded-full bg-gradient-to-t from-purple-600 to-pink-600 blur-[100px] sm:blur-[130px] opacity-15" />
       </div>
 
       {/* Main layout — stacks on mobile, side-by-side on lg+ */}
@@ -63,7 +55,7 @@ const Hero = () => {
           >
             Diff to{" "}
             <br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-blue-300 via-cyan-300 to-blue-500 bg-clip-text text-transparent animate-pulse">
+            <span className="bg-gradient-to-r from-blue-300 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
               Perfection.
             </span>
           </motion.h1>
@@ -127,6 +119,7 @@ const Hero = () => {
           <motion.div
             animate={{ y: [0, -12, 0] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            style={{ willChange: "transform" }}
             className="relative w-full max-w-sm sm:max-w-md lg:max-w-none rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 p-0.5 backdrop-blur-2xl shadow-[0_0_60px_rgba(59,130,246,0.15)] overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10 blur-2xl" />
@@ -136,12 +129,7 @@ const Hero = () => {
               <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-zinc-800/50 to-zinc-700/30 border-b border-white/5">
                 <div className="flex gap-1.5">
                   {["bg-red-500", "bg-amber-500", "bg-emerald-500"].map((c) => (
-                    <motion.div
-                      key={c}
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className={`h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full ${c}`}
-                    />
+                    <div key={c} className={`h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full ${c}`} />
                   ))}
                 </div>
                 <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-400 font-bold">
@@ -151,33 +139,21 @@ const Hero = () => {
 
               {/* Code body */}
               <div className="p-4 sm:p-6 font-mono text-xs sm:text-sm space-y-2.5 sm:space-y-3">
-                <motion.div
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                  className="text-zinc-500 flex gap-3 sm:gap-4"
-                >
+                <div className="text-zinc-500 flex gap-3 sm:gap-4">
                   <span>1</span>
                   <span>
                     <span className="text-blue-400">const</span> review ={" "}
                     <span className="text-yellow-400">await</span> D2P.analyze();
                   </span>
-                </motion.div>
-                <motion.div
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="bg-red-500/10 text-red-400 px-2.5 sm:px-3 py-1 rounded flex gap-3 sm:gap-4 border border-red-500/20"
-                >
+                </div>
+                <div className="bg-red-500/10 text-red-400 px-2.5 sm:px-3 py-1 rounded flex gap-3 sm:gap-4 border border-red-500/20">
                   <span className="text-red-300">−</span>
                   <span>if (error) throw new Error()</span>
-                </motion.div>
-                <motion.div
-                  animate={{ x: [0, -4, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: 0.1 }}
-                  className="bg-green-500/10 text-green-400 px-2.5 sm:px-3 py-1 rounded flex gap-3 sm:gap-4 border border-green-500/20"
-                >
+                </div>
+                <div className="bg-green-500/10 text-green-400 px-2.5 sm:px-3 py-1 rounded flex gap-3 sm:gap-4 border border-green-500/20">
                   <span className="text-green-300">+</span>
                   <span>if (error) return fix()</span>
-                </motion.div>
+                </div>
                 <div className="text-zinc-500 flex gap-3 sm:gap-4">
                   <span>4</span>
                   <span>
@@ -203,6 +179,7 @@ const Hero = () => {
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+            style={{ willChange: "transform" }}
             className="absolute -bottom-4 -right-2 sm:-bottom-8 sm:-right-8 hidden sm:block p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-600/20 to-blue-600/10 backdrop-blur-xl shadow-2xl shadow-blue-600/20 max-w-[180px] sm:max-w-[220px]"
           >
             <div className="flex items-center gap-2 text-blue-300 mb-1.5">

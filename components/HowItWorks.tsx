@@ -44,16 +44,8 @@ const HowItWorks = () => {
       className="relative border-t border-white/10 bg-gradient-to-b from-black via-zinc-950 to-black px-6 py-24 sm:py-32 overflow-hidden scroll-mt-20"
     >
       {/* Background Glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.15, 0.1] }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute top-1/4 right-1/4 h-96 w-[700px] rounded-full bg-purple-600/20 blur-[120px]"
-        />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute top-1/4 right-1/4 h-96 w-[700px] rounded-full bg-purple-600/20 blur-[120px] opacity-100" />
       </div>
 
       <div className="container relative mx-auto max-w-6xl">
@@ -156,15 +148,7 @@ const HowItWorks = () => {
                   <div className={`text-5xl font-black ${step.textColor}`}>
                     {step.number}
                   </div>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 20,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className={`absolute inset-0 rounded-2xl border border-dashed ${step.borderColor}`}
-                  />
+                  <div className={`absolute inset-0 rounded-2xl border border-dashed ${step.borderColor}`} />
                 </motion.div>
 
                 {/* Card */}
@@ -173,18 +157,9 @@ const HowItWorks = () => {
                   className={`relative text-center p-8 rounded-2xl border ${step.borderColor} bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl hover:shadow-2xl hover:shadow-blue-600/10 transition-all duration-300`}
                 >
                   {/* Icon */}
-                  <motion.div
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: index * 0.3,
-                    }}
-                    className={`mb-4 flex justify-center`}
-                  >
+                  <div className={`mb-4 flex justify-center`}>
                     <Icon className={`${step.textColor} h-8 w-8`} />
-                  </motion.div>
+                  </div>
 
                   {/* Title */}
                   <h3 className="mb-3 text-2xl font-bold text-white group-hover:text-blue-300 transition-colors">
@@ -204,17 +179,11 @@ const HowItWorks = () => {
 
                 {/* Arrow Indicator (visible only on desktop) */}
                 {index < steps.length - 1 && (
-                  <motion.div
-                    animate={{ x: [0, 8, 0] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: index * 0.3,
-                    }}
+                  <div
                     className="hidden md:flex absolute top-1/3 -right-16 text-blue-400/40 group-hover:text-blue-400 transition-colors"
                   >
                     <ArrowRight size={24} />
-                  </motion.div>
+                  </div>
                 )}
               </motion.div>
             );

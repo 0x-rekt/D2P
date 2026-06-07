@@ -126,12 +126,8 @@ const Features = () => {
       className="relative bg-gradient-to-b from-black via-zinc-950 to-black py-24 sm:py-32 overflow-hidden scroll-mt-20"
     >
       {/* Background glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.14, 0.08] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[900px] rounded-full bg-gradient-to-r from-blue-600 to-purple-600 blur-[150px]"
-        />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[900px] rounded-full bg-gradient-to-r from-blue-600 to-purple-600 blur-[150px] opacity-10" />
       </div>
 
       <div className="container relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
@@ -304,13 +300,11 @@ const Features = () => {
 
               <div className="relative z-10 space-y-3 sm:space-y-4">
                 {/* Icon */}
-                <motion.div
-                  animate={{ rotate: [0, 4, -4, 0] }}
-                  transition={{ duration: 6, repeat: Infinity, repeatType: "reverse" }}
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/10 group-hover:border-blue-400/40 transition-all"
+                <div
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/10 group-hover:border-blue-400/40 group-hover:rotate-3 transition-all duration-300"
                 >
                   {feature.icon}
-                </motion.div>
+                </div>
 
                 <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-blue-300 transition-colors leading-snug">
                   {feature.title}
