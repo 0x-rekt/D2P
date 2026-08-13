@@ -61,8 +61,8 @@ const typeConfig: Record<
   style: {
     icon: Code2,
     label: "Style",
-    textColor: "text-blue-400",
-    badgeClass: "border-blue-500/30 bg-blue-500/10 text-blue-400",
+    textColor: "text-violet-400",
+    badgeClass: "border-violet-500/30 bg-violet-500/10 text-violet-400",
   },
   refactor: {
     icon: RefreshCw,
@@ -75,7 +75,7 @@ const typeConfig: Record<
 const severityClass: Record<string, string> = {
   critical: "border-red-500/40 bg-red-500/10 text-red-300",
   major: "border-yellow-500/40 bg-yellow-500/10 text-yellow-300",
-  minor: "border-gray-500/40 bg-gray-500/10 text-gray-400",
+  minor: "border-white/10 bg-white/5 text-[#8D8A9C]",
 };
 
 function SuggestionCard({
@@ -101,13 +101,22 @@ function SuggestionCard({
 
   return (
     <div
-      className={`rounded-xl border backdrop-blur-sm transition-all ${
-        status === "accepted"
-          ? "border-green-500/30 bg-green-500/5"
-          : status === "rejected"
-            ? "border-white/5 bg-black/30 opacity-60"
-            : "border-white/10 bg-linear-to-b from-gray-900/50 to-black/50"
-      }`}
+      className="rounded-xl backdrop-blur-sm transition-all"
+      style={{
+        border:
+          status === "accepted"
+            ? "1px solid rgba(34,211,166,0.3)"
+            : status === "rejected"
+            ? "1px solid rgba(255,255,255,0.04)"
+            : "1px solid rgba(255,255,255,0.08)",
+        backgroundColor:
+          status === "accepted"
+            ? "rgba(34,211,166,0.04)"
+            : status === "rejected"
+            ? "rgba(0,0,0,0.3)"
+            : "#141220",
+        opacity: status === "rejected" ? 0.6 : 1,
+      }}
     >
       <div
         className="flex cursor-pointer flex-col items-start justify-between gap-2 p-3 sm:p-4 sm:flex-row sm:items-center"
@@ -129,51 +138,68 @@ function SuggestionCard({
               >
                 {suggestion.severity}
               </Badge>
-              <span className="truncate font-mono text-xs text-gray-400">
+              <span className="truncate font-mono text-xs" style={{ color: "#8D8A9C" }}>
                 {suggestion.filePath}
-                <span className="text-gray-600">:{suggestion.startLine}</span>
+                <span style={{ color: "#4B4866" }}>:{suggestion.startLine}</span>
               </span>
             </div>
-            <p className="mt-1 line-clamp-1 text-xs sm:text-sm text-gray-300">
+            <p className="mt-1 line-clamp-1 text-xs sm:text-sm" style={{ color: "#F8F7FA" }}>
               {suggestion.comment}
             </p>
           </div>
         </div>
         <div className="ml-0 flex shrink-0 items-center gap-1 sm:ml-3 sm:gap-2">
           {status === "accepted" && (
-            <CheckCircle2 size={20} className="text-green-400" />
+            <CheckCircle2 size={20} style={{ color: "#22D3A6" }} />
           )}
           {status === "rejected" && (
-            <XCircle size={20} className="text-gray-500" />
+            <XCircle size={20} style={{ color: "#8D8A9C" }} />
           )}
           {expanded ? (
-            <ChevronUp size={20} className="text-gray-500" />
+            <ChevronUp size={20} style={{ color: "#8D8A9C" }} />
           ) : (
-            <ChevronDown size={20} className="text-gray-500" />
+            <ChevronDown size={20} style={{ color: "#8D8A9C" }} />
           )}
         </div>
       </div>
 
       {expanded && (
-        <div className="border-t border-white/5 p-4">
-          <p className="mb-4 text-sm leading-relaxed text-gray-300">
+        <div
+          className="p-4"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        >
+          <p className="mb-4 text-sm leading-relaxed" style={{ color: "#8D8A9C" }}>
             {suggestion.comment}
           </p>
 
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             <div>
-              <p className="mb-1 text-[10px] font-semibold text-red-400 sm:mb-1.5 sm:text-xs">
+              <p className="mb-1 text-[10px] font-semibold sm:mb-1.5 sm:text-xs" style={{ color: "#F87171" }}>
                 Before
               </p>
-              <pre className="no-scrollbar max-h-40 overflow-auto rounded-lg border border-red-500/20 bg-red-500/5 p-2 font-mono text-[10px] leading-relaxed text-gray-300 sm:p-3 sm:text-xs">
+              <pre
+                className="no-scrollbar max-h-40 overflow-auto rounded-lg p-2 font-mono text-[10px] leading-relaxed sm:p-3 sm:text-xs"
+                style={{
+                  border: "1px solid rgba(239,68,68,0.2)",
+                  backgroundColor: "rgba(239,68,68,0.04)",
+                  color: "#8D8A9C",
+                }}
+              >
                 <code>{suggestion.originalCode}</code>
               </pre>
             </div>
             <div>
-              <p className="mb-1 text-[10px] font-semibold text-green-400 sm:mb-1.5 sm:text-xs">
+              <p className="mb-1 text-[10px] font-semibold sm:mb-1.5 sm:text-xs" style={{ color: "#22D3A6" }}>
                 After
               </p>
-              <pre className="no-scrollbar max-h-40 overflow-auto rounded-lg border border-green-500/20 bg-green-500/5 p-2 font-mono text-[10px] leading-relaxed text-gray-300 sm:p-3 sm:text-xs">
+              <pre
+                className="no-scrollbar max-h-40 overflow-auto rounded-lg p-2 font-mono text-[10px] leading-relaxed sm:p-3 sm:text-xs"
+                style={{
+                  border: "1px solid rgba(34,211,166,0.2)",
+                  backgroundColor: "rgba(34,211,166,0.04)",
+                  color: "#8D8A9C",
+                }}
+              >
                 <code>{suggestion.suggestedCode}</code>
               </pre>
             </div>
@@ -185,7 +211,12 @@ function SuggestionCard({
                 size="sm"
                 onClick={() => handle("accepted")}
                 disabled={isPending}
-                className="gap-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-60"
+                className="gap-1.5 disabled:opacity-60"
+                style={{
+                  background: "linear-gradient(135deg, #22D3A6, #A3E635)",
+                  color: "#0B0A12",
+                  fontWeight: 700,
+                }}
               >
                 <CheckCircle2 size={13} />
                 Accept
@@ -195,7 +226,11 @@ function SuggestionCard({
                 variant="ghost"
                 onClick={() => handle("rejected")}
                 disabled={isPending}
-                className="gap-1.5 border border-white/10 text-gray-400 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
+                className="gap-1.5 transition-all"
+                style={{
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "#8D8A9C",
+                }}
               >
                 <XCircle size={13} />
                 Reject
@@ -204,13 +239,14 @@ function SuggestionCard({
           )}
           {status === "accepted" && (
             <div className="mt-2 flex flex-col items-start gap-1 sm:mt-3 sm:flex-row sm:items-center sm:gap-2">
-              <p className="flex items-center gap-1 text-xs text-green-400 sm:gap-1.5">
+              <p className="flex items-center gap-1 text-xs sm:gap-1.5" style={{ color: "#22D3A6" }}>
                 <CheckCircle2 size={11} /> Accepted
               </p>
               <button
                 onClick={() => handle("rejected")}
                 disabled={isPending}
-                className="text-xs text-gray-600 hover:text-gray-400 underline"
+                className="text-xs underline"
+                style={{ color: "#4B4866" }}
               >
                 undo
               </button>
@@ -218,13 +254,14 @@ function SuggestionCard({
           )}
           {status === "rejected" && (
             <div className="mt-2 flex flex-col items-start gap-1 sm:mt-3 sm:flex-row sm:items-center sm:gap-2">
-              <p className="flex items-center gap-1 text-xs text-gray-500 sm:gap-1.5">
+              <p className="flex items-center gap-1 text-xs sm:gap-1.5" style={{ color: "#8D8A9C" }}>
                 <XCircle size={11} /> Rejected
               </p>
               <button
                 onClick={() => handle("accepted")}
                 disabled={isPending}
-                className="text-xs text-gray-600 hover:text-gray-400 underline"
+                className="text-xs underline"
+                style={{ color: "#4B4866" }}
               >
                 undo
               </button>
@@ -263,13 +300,19 @@ function ApplyButton({
 
   if (prUrl) {
     return (
-      <div className="flex flex-col items-start gap-2 rounded-xl border border-green-500/20 bg-green-500/5 px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-4">
-        <CheckCircle2 size={30} className="shrink-0 text-green-400" />
+      <div
+        className="flex flex-col items-start gap-2 rounded-xl px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-4"
+        style={{
+          border: "1px solid rgba(34,211,166,0.2)",
+          backgroundColor: "rgba(34,211,166,0.05)",
+        }}
+      >
+        <CheckCircle2 size={30} className="shrink-0" style={{ color: "#22D3A6" }} />
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-green-400 sm:text-sm">
+          <p className="text-xs font-medium sm:text-sm" style={{ color: "#22D3A6" }}>
             Changes applied successfully
           </p>
-          <p className="mt-0.5 text-xs text-gray-500">
+          <p className="mt-0.5 text-xs" style={{ color: "#8D8A9C" }}>
             A new pull request has been created with your accepted suggestions
           </p>
         </div>
@@ -277,7 +320,12 @@ function ApplyButton({
           href={prUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex shrink-0 items-center gap-1 rounded-lg border border-green-500/30 bg-green-500/10 px-2 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-500/20 transition-colors sm:gap-1.5 sm:px-3"
+          className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors sm:gap-1.5 sm:px-3"
+          style={{
+            border: "1px solid rgba(34,211,166,0.3)",
+            backgroundColor: "rgba(34,211,166,0.1)",
+            color: "#22D3A6",
+          }}
         >
           <GitPullRequest size={14} />
           <span className="hidden sm:inline">View PR</span>
@@ -290,21 +338,27 @@ function ApplyButton({
 
   return (
     <div className="space-y-2 flex flex-col gap-2">
-      <div className="flex flex-col items-start justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-4">
+      <div
+        className="flex flex-col items-start justify-between gap-2 rounded-xl px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-4"
+        style={{
+          border: "1px solid rgba(255,255,255,0.08)",
+          backgroundColor: "rgba(255,255,255,0.04)",
+        }}
+      >
         <div>
-          <p className="text-xs font-medium text-white sm:text-sm">
+          <p className="text-xs font-medium sm:text-sm" style={{ color: "#F8F7FA" }}>
             {acceptedCount} suggestion{acceptedCount !== 1 ? "s" : ""} accepted
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs mt-0.5" style={{ color: "#8D8A9C" }}>
             {acceptedCount > 0
               ? "Apply all accepted changes and create a new PR on GitHub"
               : "Accept at least one suggestion before applying"}
           </p>
         </div>
-        <Button
+        <button
           onClick={handleApply}
           disabled={isPending || acceptedCount === 0}
-          className="shrink-0 gap-2 bg-blue-600 font-semibold hover:bg-blue-700 disabled:opacity-40"
+          className="btn-gradient-teal shrink-0 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isPending ? (
             <>
@@ -314,13 +368,20 @@ function ApplyButton({
           ) : (
             <>
               <GitPullRequest size={14} />
-              Apply & Create PR
+              Apply &amp; Create PR
             </>
           )}
-        </Button>
+        </button>
       </div>
       {error && (
-        <p className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs text-red-400">
+        <p
+          className="rounded-lg px-3 py-2 text-xs"
+          style={{
+            border: "1px solid rgba(239,68,68,0.2)",
+            backgroundColor: "rgba(239,68,68,0.05)",
+            color: "#F87171",
+          }}
+        >
           {error}
         </p>
       )}
@@ -370,22 +431,33 @@ export function SuggestionPanel({
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles size={15} className="text-blue-400" />
-          <span className="font-semibold text-white">
+          <Sparkles size={15} style={{ color: "#C084FC" }} />
+          <span className="font-semibold" style={{ color: "#F8F7FA" }}>
             {suggestions.length} AI Suggestion
             {suggestions.length !== 1 ? "s" : ""}
           </span>
         </div>
-        <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
+        <div
+          className="flex gap-1 rounded-lg p-1"
+          style={{
+            border: "1px solid rgba(255,255,255,0.08)",
+            backgroundColor: "#141220",
+          }}
+        >
           {(["all", "pending", "accepted", "rejected"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`rounded-md px-3 py-1 text-xs font-medium capitalize transition-colors ${
+              className="rounded-md px-3 py-1 text-xs font-medium capitalize transition-colors"
+              style={
                 filter === f
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white"
-              }`}
+                  ? {
+                      background:
+                        "linear-gradient(135deg, #7C3AED, #A855F7)",
+                      color: "#F8F7FA",
+                    }
+                  : { color: "#8D8A9C" }
+              }
             >
               {f} ({counts[f]})
             </button>
@@ -395,7 +467,7 @@ export function SuggestionPanel({
 
       <div className="space-y-3">
         {filtered.length === 0 ? (
-          <p className="py-10 text-center text-sm text-gray-500">
+          <p className="py-10 text-center text-sm" style={{ color: "#8D8A9C" }}>
             No {filter} suggestions.
           </p>
         ) : (

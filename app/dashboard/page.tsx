@@ -6,7 +6,6 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
 } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
@@ -30,14 +29,33 @@ const Dashboard = async ({ searchParams }: PageProps) => {
 
   if (error) {
     return (
-      <section className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] flex items-center justify-center">
-        <div className="pointer-events-none absolute left-1/4 top-0 -z-10 h-[600px] w-[900px] rounded-full bg-gradient-to-b from-red-600 to-red-900 opacity-10 blur-[140px]" />
+      <section
+        className="relative min-h-screen overflow-hidden flex items-center justify-center"
+        style={{ backgroundColor: "#0B0A12" }}
+      >
+        <div
+          className="pointer-events-none absolute left-1/4 top-0 -z-10 h-[600px] w-[900px] rounded-full"
+          style={{
+            background: "radial-gradient(ellipse, rgba(239,68,68,0.1), transparent 70%)",
+            filter: "blur(120px)",
+          }}
+        />
         <div className="text-center space-y-4">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
-            <AlertCircle className="text-red-400" size={28} />
+          <div
+            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl"
+            style={{
+              border: "1px solid rgba(239,68,68,0.2)",
+              backgroundColor: "rgba(239,68,68,0.08)",
+            }}
+          >
+            <AlertCircle style={{ color: "#F87171" }} size={28} />
           </div>
-          <h1 className="text-2xl font-bold text-white">Something went wrong</h1>
-          <p className="text-gray-500 text-sm max-w-sm">{error}</p>
+          <h1 className="text-2xl font-bold" style={{ color: "#F8F7FA" }}>
+            Something went wrong
+          </h1>
+          <p className="text-sm max-w-sm" style={{ color: "#8D8A9C" }}>
+            {error}
+          </p>
         </div>
       </section>
     );
@@ -45,14 +63,31 @@ const Dashboard = async ({ searchParams }: PageProps) => {
 
   if (!repositories || repositories.length === 0) {
     return (
-      <section className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] flex items-center justify-center">
-        <div className="pointer-events-none absolute left-1/4 top-0 -z-10 h-[600px] w-[900px] rounded-full bg-gradient-to-b from-blue-600 to-indigo-600 opacity-15 blur-[140px]" />
+      <section
+        className="relative min-h-screen overflow-hidden flex items-center justify-center"
+        style={{ backgroundColor: "#0B0A12" }}
+      >
+        <div
+          className="pointer-events-none absolute left-1/4 top-0 -z-10 h-[600px] w-[900px] rounded-full"
+          style={{
+            background: "radial-gradient(ellipse, rgba(124,58,237,0.15), transparent 70%)",
+            filter: "blur(140px)",
+          }}
+        />
         <div className="text-center space-y-4">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-            <Github className="text-gray-500" size={28} />
+          <div
+            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl"
+            style={{
+              border: "1px solid rgba(255,255,255,0.08)",
+              backgroundColor: "rgba(255,255,255,0.04)",
+            }}
+          >
+            <Github style={{ color: "#8D8A9C" }} size={28} />
           </div>
-          <h1 className="text-2xl font-bold text-white">No Repositories Found</h1>
-          <p className="text-gray-500 text-sm max-w-sm">
+          <h1 className="text-2xl font-bold" style={{ color: "#F8F7FA" }}>
+            No Repositories Found
+          </h1>
+          <p className="text-sm max-w-sm" style={{ color: "#8D8A9C" }}>
             You don&apos;t have any repositories yet. Create one on GitHub to get started.
           </p>
         </div>
@@ -65,24 +100,48 @@ const Dashboard = async ({ searchParams }: PageProps) => {
   const hasPrevPage = page > 1;
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] py-16 sm:py-20">
-      {/* Background glows — matches home page */}
+    <section
+      className="relative min-h-screen overflow-hidden py-16 sm:py-20"
+      style={{ backgroundColor: "#0B0A12" }}
+    >
+      {/* Background glows */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/4 top-0 -z-10 h-[600px] w-[900px] rounded-full bg-gradient-to-b from-blue-600 to-indigo-600 opacity-[0.15] blur-[140px]" />
-        <div className="absolute bottom-1/4 right-1/4 -z-10 h-[500px] w-[800px] rounded-full bg-gradient-to-t from-purple-600 to-pink-600 opacity-[0.08] blur-[130px]" />
+        <div
+          className="absolute left-1/4 top-0 -z-10 h-[600px] w-[900px] rounded-full"
+          style={{
+            background: "radial-gradient(ellipse, rgba(124,58,237,0.18), rgba(168,85,247,0.08) 50%, transparent 70%)",
+            filter: "blur(140px)",
+          }}
+        />
+        <div
+          className="absolute bottom-1/4 right-1/4 -z-10 h-[500px] w-[800px] rounded-full"
+          style={{
+            background: "radial-gradient(ellipse, rgba(192,38,211,0.12), transparent 70%)",
+            filter: "blur(130px)",
+          }}
+        />
       </div>
 
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-10 sm:mb-14 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-medium text-blue-400">
+          <div
+            className="mb-4 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium"
+            style={{
+              border: "1px solid rgba(168,85,247,0.3)",
+              backgroundColor: "rgba(168,85,247,0.08)",
+              color: "#C084FC",
+            }}
+          >
             <Github size={13} />
             GitHub Repositories
           </div>
-          <h1 className="mb-3 bg-gradient-to-b from-white to-gray-500 bg-clip-text text-4xl font-black tracking-tight text-transparent sm:text-5xl">
+          <h1
+            className="mb-3 text-4xl font-black tracking-tight sm:text-5xl gradient-text-primary"
+          >
             Your Repositories
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm" style={{ color: "#8D8A9C" }}>
             {total} {total === 1 ? "repository" : "repositories"} found
           </p>
         </div>
@@ -104,7 +163,12 @@ const Dashboard = async ({ searchParams }: PageProps) => {
             {hasPrevPage ? (
               <Link
                 href={`/dashboard?page=${page - 1}`}
-                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+                className="flex items-center gap-1.5 rounded-full px-4 py-2 text-xs transition-all"
+                style={{
+                  border: "1px solid rgba(168,85,247,0.2)",
+                  backgroundColor: "rgba(168,85,247,0.06)",
+                  color: "#8D8A9C",
+                }}
               >
                 <ChevronLeft size={14} />
                 Previous
@@ -112,13 +176,18 @@ const Dashboard = async ({ searchParams }: PageProps) => {
             ) : (
               <div className="w-24" />
             )}
-            <span className="text-xs text-gray-600">
+            <span className="text-xs" style={{ color: "#4B4866" }}>
               {page} / {totalPages}
             </span>
             {hasNextPage ? (
               <Link
                 href={`/dashboard?page=${page + 1}`}
-                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+                className="flex items-center gap-1.5 rounded-full px-4 py-2 text-xs transition-all"
+                style={{
+                  border: "1px solid rgba(168,85,247,0.2)",
+                  backgroundColor: "rgba(168,85,247,0.06)",
+                  color: "#8D8A9C",
+                }}
               >
                 Next
                 <ChevronRight size={14} />

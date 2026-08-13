@@ -1,6 +1,6 @@
 import axios from "axios";
 import prisma from "@/lib/prisma";
-import OpenAI from "openai";
+import { OpenAI } from "openai";
 
 const ai = new OpenAI({
   baseURL: "https://router.huggingface.co/v1",

@@ -22,19 +22,19 @@ interface RepoCardProps {
 }
 
 const languageColors: Record<string, string> = {
-  JavaScript: "bg-yellow-400",
-  TypeScript: "bg-blue-500",
-  Python: "bg-blue-400",
-  Java: "bg-red-500",
-  "C++": "bg-pink-500",
-  Ruby: "bg-red-600",
-  Go: "bg-cyan-400",
-  Rust: "bg-orange-500",
-  "Jupyter Notebook": "bg-orange-400",
+  JavaScript: "#F59E0B",
+  TypeScript: "#6366F1",
+  Python: "#22D3EE",
+  Java: "#F87171",
+  "C++": "#F472B6",
+  Ruby: "#EF4444",
+  Go: "#22D3A6",
+  Rust: "#FB923C",
+  "Jupyter Notebook": "#F59E0B",
 };
 
 const getLanguageColor = (language: string | null) =>
-  languageColors[language || ""] || "bg-gray-500";
+  languageColors[language || ""] || "#8D8A9C";
 
 export const RepoCard = ({ repo, isConnected }: RepoCardProps) => {
   const formatDate = (dateString: string) => {
@@ -47,13 +47,39 @@ export const RepoCard = ({ repo, isConnected }: RepoCardProps) => {
   };
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.07] bg-gradient-to-b from-zinc-900/60 to-black/60 p-5 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/25 hover:shadow-xl hover:shadow-blue-500/[0.08]">
+    <div
+      className="group relative flex flex-col overflow-hidden rounded-2xl p-5 backdrop-blur-sm transition-all duration-300"
+      style={{
+        border: "1px solid rgba(255,255,255,0.06)",
+        backgroundColor: "#141220",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLDivElement).style.border =
+          "1px solid rgba(168,85,247,0.25)";
+        (e.currentTarget as HTMLDivElement).style.boxShadow =
+          "0 8px 40px rgba(168,85,247,0.08)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLDivElement).style.border =
+          "1px solid rgba(255,255,255,0.06)";
+        (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+      }}
+    >
       {/* Subtle top glow on hover */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, rgba(168,85,247,0.5), rgba(236,72,153,0.3), transparent)",
+        }}
+      />
 
       {/* Header */}
       <div className="mb-3 flex items-start justify-between gap-2">
-        <h3 className="truncate text-base font-bold text-white group-hover:text-blue-300 transition-colors">
+        <h3
+          className="truncate text-base font-bold transition-colors group-hover:text-violet-300"
+          style={{ color: "#F8F7FA" }}
+        >
           {repo.name}
         </h3>
         <Badge
@@ -61,25 +87,33 @@ export const RepoCard = ({ repo, isConnected }: RepoCardProps) => {
           className={`shrink-0 text-[10px] font-medium ${
             repo.private
               ? "border-yellow-500/25 bg-yellow-500/10 text-yellow-400"
-              : "border-green-500/25 bg-green-500/10 text-green-400"
+              : "border-emerald-500/25 bg-emerald-500/10 text-emerald-400"
           }`}
         >
           {repo.private ? "Private" : "Public"}
         </Badge>
       </div>
 
-      <p className="mb-1 truncate text-[11px] text-gray-600">{repo.full_name}</p>
+      <p className="mb-1 truncate text-[11px]" style={{ color: "#4B4866" }}>
+        {repo.full_name}
+      </p>
 
       {/* Description */}
-      <p className="mb-4 line-clamp-2 min-h-[36px] flex-1 text-xs leading-relaxed text-gray-400">
+      <p
+        className="mb-4 line-clamp-2 min-h-[36px] flex-1 text-xs leading-relaxed"
+        style={{ color: "#8D8A9C" }}
+      >
         {repo.description || "No description provided"}
       </p>
 
       {/* Meta */}
-      <div className="mb-4 flex flex-wrap items-center gap-3 text-[11px] text-gray-600">
+      <div className="mb-4 flex flex-wrap items-center gap-3 text-[11px]" style={{ color: "#4B4866" }}>
         {repo.language && (
           <div className="flex items-center gap-1.5">
-            <span className={`h-2 w-2 rounded-full ${getLanguageColor(repo.language)}`} />
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: getLanguageColor(repo.language) }}
+            />
             {repo.language}
           </div>
         )}
@@ -101,7 +135,12 @@ export const RepoCard = ({ repo, isConnected }: RepoCardProps) => {
           {isConnected && repo.connectedRepoId && (
             <Link
               href={`/dashboard/repos/${repo.connectedRepoId}/security`}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 transition-all"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all"
+              style={{
+                border: "1px solid rgba(168,85,247,0.25)",
+                backgroundColor: "rgba(168,85,247,0.08)",
+                color: "#C084FC",
+              }}
             >
               Open Dashboard
             </Link>
@@ -110,7 +149,12 @@ export const RepoCard = ({ repo, isConnected }: RepoCardProps) => {
             href={repo.html_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all"
+            style={{
+              border: "1px solid rgba(255,255,255,0.07)",
+              backgroundColor: "rgba(255,255,255,0.03)",
+              color: "#8D8A9C",
+            }}
           >
             <ExternalLink size={12} />
             GitHub

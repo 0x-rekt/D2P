@@ -1,7 +1,7 @@
 "use client";
 
 import { authClient } from "@/lib/auth-client";
-import { Button } from "./ui/button";
+import { Github } from "lucide-react";
 
 const SignInBtn = () => {
   const handleClick = async () => {
@@ -12,13 +12,13 @@ const SignInBtn = () => {
   };
 
   return (
-    <Button
-      variant="outline"
-      className="border-white/10 bg-white/5 text-white hover:bg-white/10 cursor-pointer"
+    <button
       onClick={handleClick}
+      className="btn-gradient-teal flex items-center gap-2 rounded-full px-5 py-2 text-sm font-bold cursor-pointer"
     >
+      <Github size={15} />
       Sign in with GitHub
-    </Button>
+    </button>
   );
 };
 

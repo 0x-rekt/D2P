@@ -6,7 +6,10 @@ import Footer from "@/components/Footer";
 
 const Home = () => {
   return (
-    <div className="flex flex-col bg-black text-white min-h-screen">
+    <div
+      className="flex flex-col min-h-screen"
+      style={{ backgroundColor: "#0B0A12", color: "#F8F7FA" }}
+    >
       <Hero />
       <HowItWorks />
       <Features />

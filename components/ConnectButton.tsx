@@ -44,16 +44,43 @@ const ConnectButton = ({ repoId, initialConnected }: ConnectButtonProps) => {
         {connected ? (
           <>
             {/* Connected status pill */}
-            <div className="flex flex-1 items-center gap-1.5 rounded-lg border border-green-500/20 bg-green-500/10 px-3 py-1.5">
-              <CheckCircle2 size={12} className="shrink-0 text-green-400" />
-              <span className="text-xs font-semibold text-green-400">Connected</span>
+            <div
+              className="flex flex-1 items-center gap-1.5 rounded-lg px-3 py-1.5"
+              style={{
+                border: "1px solid rgba(34,211,166,0.2)",
+                backgroundColor: "rgba(34,211,166,0.08)",
+              }}
+            >
+              <CheckCircle2 size={12} className="shrink-0" style={{ color: "#22D3A6" }} />
+              <span className="text-xs font-semibold" style={{ color: "#22D3A6" }}>
+                Connected
+              </span>
             </div>
             {/* Disconnect icon button */}
             <button
               onClick={handleDisconnect}
               disabled={isPending}
               title="Disconnect"
-              className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-gray-500 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400 transition-all disabled:opacity-50 cursor-pointer"
+              className="flex h-[30px] w-[30px] items-center justify-center rounded-lg transition-all disabled:opacity-50 cursor-pointer"
+              style={{
+                border: "1px solid rgba(255,255,255,0.07)",
+                backgroundColor: "rgba(255,255,255,0.03)",
+                color: "#8D8A9C",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor =
+                  "rgba(239,68,68,0.3)";
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                  "rgba(239,68,68,0.08)";
+                (e.currentTarget as HTMLButtonElement).style.color = "#F87171";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor =
+                  "rgba(255,255,255,0.07)";
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                  "rgba(255,255,255,0.03)";
+                (e.currentTarget as HTMLButtonElement).style.color = "#8D8A9C";
+              }}
             >
               {isPending ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -66,7 +93,7 @@ const ConnectButton = ({ repoId, initialConnected }: ConnectButtonProps) => {
           <button
             onClick={handleConnect}
             disabled={isPending}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:from-blue-500 hover:to-blue-400 transition-all disabled:opacity-60 cursor-pointer shadow-lg shadow-blue-600/20"
+            className="btn-gradient-teal flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-60 cursor-pointer"
           >
             {isPending ? (
               <>
@@ -83,7 +110,9 @@ const ConnectButton = ({ repoId, initialConnected }: ConnectButtonProps) => {
         )}
       </div>
       {error && (
-        <p className="text-[11px] leading-snug text-red-400">{error}</p>
+        <p className="text-[11px] leading-snug" style={{ color: "#F87171" }}>
+          {error}
+        </p>
       )}
     </div>
   );

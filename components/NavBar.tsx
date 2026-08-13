@@ -82,9 +82,14 @@ const NavBar = () => {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className={`sticky top-0 z-50 w-full transition-all duration-500 ${
           scrolled
-            ? "border-b border-white/[0.06] bg-black/75 shadow-lg shadow-black/30 backdrop-blur-2xl"
-            : "border-b border-transparent bg-black/20 backdrop-blur-xl"
+            ? "border-b border-white/[0.06] backdrop-blur-2xl shadow-lg shadow-black/40"
+            : "border-b border-transparent backdrop-blur-xl"
         }`}
+        style={{
+          backgroundColor: scrolled
+            ? "rgba(11,10,18,0.85)"
+            : "rgba(11,10,18,0.3)",
+        }}
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
@@ -93,10 +98,14 @@ const NavBar = () => {
               href="/"
               className="flex items-center gap-1.5 text-xl font-black tracking-tighter"
             >
-              <span className="bg-gradient-to-r from-white via-gray-100 to-gray-400 bg-clip-text text-transparent">
-                D2P
-              </span>
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_6px_2px_rgba(59,130,246,0.6)]" />
+              <span className="gradient-text-primary">D2P</span>
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{
+                  backgroundColor: "#22D3A6",
+                  boxShadow: "0 0 6px 2px rgba(34,211,166,0.6)",
+                }}
+              />
             </Link>
           </motion.div>
 
@@ -123,9 +132,14 @@ const NavBar = () => {
                     href={link.href}
                     className={`relative flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
                       active
-                        ? "bg-blue-500/15 text-blue-300 border border-blue-500/25"
-                        : "text-gray-400 hover:text-white hover:bg-white/[0.06]"
+                        ? "text-violet-300 border border-violet-500/25"
+                        : "text-[#8D8A9C] hover:text-[#F8F7FA] hover:bg-white/[0.06]"
                     }`}
+                    style={
+                      active
+                        ? { backgroundColor: "rgba(139,92,246,0.12)" }
+                        : {}
+                    }
                   >
                     <Icon size={14} />
                     {link.label}
@@ -143,19 +157,26 @@ const NavBar = () => {
             className="flex items-center gap-2"
           >
             {isPending ? (
-              <div className="h-8 w-24 rounded-full bg-white/5 animate-pulse" />
+              <div className="h-8 w-24 rounded-full animate-pulse" style={{ backgroundColor: "rgba(255,255,255,0.05)" }} />
             ) : session ? (
               <>
                 {/* Avatar pill */}
-                <div className="hidden sm:flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] py-1 pl-1 pr-3">
+                <div
+                  className="hidden sm:flex items-center gap-2 rounded-full py-1 pl-1 pr-3"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    backgroundColor: "rgba(255,255,255,0.04)",
+                  }}
+                >
                   <Image
                     src={session.user.image || "/default-avatar.png"}
                     alt={session.user.name}
                     width={26}
                     height={26}
-                    className="rounded-full ring-1 ring-blue-500/40"
+                    className="rounded-full"
+                    style={{ boxShadow: "0 0 0 1px rgba(168,85,247,0.4)" }}
                   />
-                  <span className="text-xs font-medium text-gray-300 max-w-[100px] truncate">
+                  <span className="text-xs font-medium text-[#8D8A9C] max-w-[100px] truncate">
                     {session.user.name}
                   </span>
                 </div>
@@ -164,7 +185,10 @@ const NavBar = () => {
                     onClick={handleSignOut}
                     size="sm"
                     variant="ghost"
-                    className="cursor-pointer h-8 gap-1.5 rounded-full border border-white/10 px-3 text-gray-400 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400 transition-all"
+                    className="cursor-pointer h-8 gap-1.5 rounded-full px-3 text-[#8D8A9C] hover:text-red-400 transition-all"
+                    style={{
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
                   >
                     <LogOut size={13} />
                     <span className="hidden sm:inline text-xs font-medium">Sign Out</span>
@@ -178,7 +202,11 @@ const NavBar = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-gray-400 hover:bg-white/10 hover:text-white transition-all md:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[#8D8A9C] hover:text-[#F8F7FA] transition-all md:hidden"
+              style={{
+                border: "1px solid rgba(255,255,255,0.08)",
+                backgroundColor: "rgba(255,255,255,0.04)",
+              }}
               aria-label="Toggle menu"
             >
               <AnimatePresence mode="wait" initial={false}>
@@ -212,7 +240,8 @@ const NavBar = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 backdrop-blur-sm"
+              style={{ backgroundColor: "rgba(11,10,18,0.7)" }}
               onClick={() => setMobileOpen(false)}
             />
             {/* Drawer */}
@@ -221,7 +250,12 @@ const NavBar = () => {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 288, opacity: 0 }}
               transition={{ type: "spring", stiffness: 380, damping: 40 }}
-              className="absolute right-0 top-16 w-72 rounded-bl-2xl border-b border-l border-white/[0.08] bg-zinc-950/95 p-4 shadow-2xl backdrop-blur-2xl"
+              className="absolute right-0 top-16 w-72 rounded-bl-2xl p-4 shadow-2xl backdrop-blur-2xl"
+              style={{
+                backgroundColor: "rgba(20,18,32,0.97)",
+                borderLeft: "1px solid rgba(255,255,255,0.06)",
+                borderBottom: "1px solid rgba(255,255,255,0.06)",
+              }}
             >
               <div className="flex flex-col gap-1">
                 <Link
@@ -229,9 +263,17 @@ const NavBar = () => {
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                     pathname === "/"
-                      ? "bg-blue-500/15 text-blue-400 border border-blue-500/25"
-                      : "text-gray-400 hover:bg-white/[0.06] hover:text-white"
+                      ? "text-violet-400"
+                      : "text-[#8D8A9C] hover:text-[#F8F7FA]"
                   }`}
+                  style={
+                    pathname === "/"
+                      ? {
+                          backgroundColor: "rgba(139,92,246,0.12)",
+                          border: "1px solid rgba(139,92,246,0.25)",
+                        }
+                      : { border: "1px solid transparent" }
+                  }
                 >
                   <Home size={15} />
                   Home
@@ -248,9 +290,17 @@ const NavBar = () => {
                       onClick={() => setMobileOpen(false)}
                       className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                         active
-                          ? "bg-blue-500/15 text-blue-400 border border-blue-500/25"
-                          : "text-gray-400 hover:bg-white/[0.06] hover:text-white"
+                          ? "text-violet-400"
+                          : "text-[#8D8A9C] hover:text-[#F8F7FA]"
                       }`}
+                      style={
+                        active
+                          ? {
+                              backgroundColor: "rgba(139,92,246,0.12)",
+                              border: "1px solid rgba(139,92,246,0.25)",
+                            }
+                          : { border: "1px solid transparent" }
+                      }
                     >
                       <Icon size={15} />
                       {link.label}
@@ -259,7 +309,7 @@ const NavBar = () => {
                 })}
               </div>
 
-              <div className="my-3 border-t border-white/[0.08]" />
+              <div className="my-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
 
               {session ? (
                 <div className="space-y-2">
@@ -269,15 +319,20 @@ const NavBar = () => {
                       alt={session.user.name}
                       width={28}
                       height={28}
-                      className="rounded-full ring-1 ring-blue-500/40"
+                      className="rounded-full"
+                      style={{ boxShadow: "0 0 0 1px rgba(168,85,247,0.4)" }}
                     />
-                    <span className="text-sm font-medium text-gray-300 truncate">
+                    <span className="text-sm font-medium text-[#8D8A9C] truncate">
                       {session.user.name}
                     </span>
                   </div>
                   <button
                     onClick={handleSignOut}
-                    className="flex w-full items-center gap-2.5 rounded-xl border border-red-500/20 bg-red-500/[0.08] px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/15 transition-all"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 transition-all"
+                    style={{
+                      border: "1px solid rgba(239,68,68,0.2)",
+                      backgroundColor: "rgba(239,68,68,0.06)",
+                    }}
                   >
                     <LogOut size={15} />
                     Sign Out

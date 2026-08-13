@@ -7,22 +7,30 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-white/[0.06] bg-black">
+    <footer
+      style={{
+        backgroundColor: "#0B0A12",
+        borderTop: "1px solid rgba(168,85,247,0.08)",
+      }}
+    >
       <div className="mx-auto max-w-7xl px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-black bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-            D2P
-          </span>
-          <span className="h-1 w-1 rounded-full bg-blue-500" />
-          <span className="text-xs text-gray-600">
-            © {currentYear}
+          <span className="text-sm font-black gradient-text-primary">D2P</span>
+          <span
+            className="h-1 w-1 rounded-full"
+            style={{ backgroundColor: "#22D3A6" }}
+          />
+          <span className="text-xs" style={{ color: "#4B4866" }}>
+            {currentYear}
           </span>
         </div>
 
         {/* Center — tagline */}
-        <p className="flex items-center gap-1.5 text-xs text-gray-600">
-          Built with <Heart size={11} className="text-red-500/70" /> for developers
+        <p className="flex items-center gap-1.5 text-xs" style={{ color: "#4B4866" }}>
+          Built with{" "}
+          <Heart size={11} style={{ color: "#DB2777" }} />
+          {" "}for developers
         </p>
 
         {/* Right — GitHub */}
@@ -30,7 +38,10 @@ const Footer = () => {
           href="https://github.com/0x-rekt/d2p"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-300 transition-colors"
+          className="flex items-center gap-1.5 text-xs transition-colors"
+          style={{ color: "#4B4866" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#C084FC")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#4B4866")}
         >
           <Github size={13} />
           GitHub

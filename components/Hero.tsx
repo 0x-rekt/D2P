@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -25,12 +24,33 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#030303] via-[#0a0e27] to-[#030303] px-4 pt-24 pb-16 sm:pt-28 sm:pb-20">
-
-      {/* Static Background Glows */}
+    <section
+      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 pt-24 pb-16 sm:pt-28 sm:pb-20"
+      style={{ backgroundColor: "#0B0A12" }}
+    >
+      {/* Ambient Glow Blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="absolute -top-[20%] left-1/4 h-[400px] w-[600px] sm:h-[600px] sm:w-[900px] rounded-full bg-gradient-to-b from-blue-600 to-indigo-600 blur-[120px] sm:blur-[140px] opacity-20" />
-        <div className="absolute bottom-1/4 right-1/4 h-[300px] w-[500px] sm:h-[500px] sm:w-[800px] rounded-full bg-gradient-to-t from-purple-600 to-pink-600 blur-[100px] sm:blur-[130px] opacity-15" />
+        <div
+          className="absolute -top-[20%] left-1/4 h-[400px] w-[600px] sm:h-[700px] sm:w-[1000px] rounded-full"
+          style={{
+            background: "radial-gradient(ellipse, rgba(124,58,237,0.25) 0%, transparent 70%)",
+            filter: "blur(120px)",
+          }}
+        />
+        <div
+          className="absolute bottom-1/4 right-1/4 h-[300px] w-[500px] sm:h-[600px] sm:w-[900px] rounded-full"
+          style={{
+            background: "radial-gradient(ellipse, rgba(192,38,211,0.18) 0%, transparent 70%)",
+            filter: "blur(100px)",
+          }}
+        />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[200px] w-[600px]"
+          style={{
+            background: "radial-gradient(ellipse, rgba(168,85,247,0.08) 0%, transparent 70%)",
+            filter: "blur(80px)",
+          }}
+        />
       </div>
 
       {/* Main layout — stacks on mobile, side-by-side on lg+ */}
@@ -43,7 +63,14 @@ const Hero = () => {
           className="text-center lg:text-left space-y-6 sm:space-y-8"
         >
           <motion.div variants={itemVariants} className="flex justify-center lg:justify-start">
-            <Badge className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 px-3 py-1.5 sm:px-4 sm:py-2 backdrop-blur-md hover:from-blue-500/30 hover:to-purple-500/30 transition-all text-xs sm:text-sm">
+            <Badge
+              className="px-3 py-1.5 sm:px-4 sm:py-2 backdrop-blur-md text-xs sm:text-sm font-medium"
+              style={{
+                background: "linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.15))",
+                border: "1px solid rgba(168,85,247,0.35)",
+                color: "#C084FC",
+              }}
+            >
               <Sparkles size={12} className="mr-1.5 sm:mr-2 animate-pulse" />
               AI-Engine v2.5 Now Live
             </Badge>
@@ -51,18 +78,18 @@ const Hero = () => {
 
           <motion.h1
             variants={itemVariants}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-white leading-[0.95]"
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.95]"
+            style={{ color: "#F8F7FA" }}
           >
             Diff to{" "}
             <br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-blue-300 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
-              Perfection.
-            </span>
+            <span className="gradient-text-primary">Perfection.</span>
           </motion.h1>
 
           <motion.p
             variants={itemVariants}
-            className="mx-auto lg:mx-0 max-w-md text-base sm:text-lg md:text-xl text-gray-300 font-medium leading-relaxed"
+            className="mx-auto lg:mx-0 max-w-md text-base sm:text-lg md:text-xl font-medium leading-relaxed"
+            style={{ color: "#8D8A9C" }}
           >
             Automate code reviews, fix CI failures, and ship with confidence.
             AI-powered development that doesn&apos;t just comment—it fixes.
@@ -73,15 +100,15 @@ const Hero = () => {
             className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2"
           >
             {session ? (
-              <Button
-                size="lg"
-                className="group rounded-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white px-6 sm:px-8 h-12 sm:h-14 font-bold shadow-lg shadow-blue-600/40 transition-all hover:shadow-blue-400/60 hover:scale-105 active:scale-95 text-sm sm:text-base"
-              >
-                <Link href="/dashboard" className="flex items-center gap-2 text-white! no-underline hover:text-white!">
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                <Link
+                  href="/dashboard"
+                  className="btn-gradient-teal group flex items-center gap-2 rounded-full px-8 h-12 sm:h-14 text-sm sm:text-base"
+                >
                   Open Dashboard
                   <ArrowRight className="group-hover:translate-x-1 transition-transform" size={16} />
                 </Link>
-              </Button>
+              </motion.div>
             ) : (
               <SignInBtn />
             )}
@@ -99,95 +126,166 @@ const Hero = () => {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 backdrop-blur-sm"
+                className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 backdrop-blur-sm"
+                style={{
+                  border: "1px solid rgba(168,85,247,0.2)",
+                  backgroundColor: "rgba(168,85,247,0.06)",
+                }}
               >
-                <span className="text-xs font-bold text-white">{stat.value}</span>
-                <span className="text-[11px] text-gray-500">{stat.label}</span>
+                <span className="text-xs font-bold text-[#F8F7FA]">{stat.value}</span>
+                <span className="text-[11px]" style={{ color: "#8D8A9C" }}>{stat.label}</span>
               </div>
             ))}
           </motion.div>
         </motion.div>
 
-        {/* Right Content — full on lg, compact card on mobile */}
+        {/* Right Content — Code Editor Visual */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, ease: "easeOut", delay: 0.4 }}
           className="relative flex items-center justify-center"
         >
-          {/* Code visualization — always visible, just scaled for mobile */}
+          {/* 3D Blob — CSS gradient sphere */}
+          <div
+            className="absolute -right-8 -top-8 w-52 h-52 sm:w-72 sm:h-72 rounded-full opacity-70 pointer-events-none"
+            style={{
+              background: "radial-gradient(circle at 35% 35%, #DB2777, #A855F7 50%, #6366F1 80%)",
+              filter: "blur(40px)",
+              transform: "scale(1.2)",
+            }}
+            aria-hidden="true"
+          />
+          <div
+            className="absolute -right-4 -top-4 w-44 h-44 sm:w-60 sm:h-60 rounded-full pointer-events-none"
+            style={{
+              background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, rgba(219,39,119,0.8) 30%, rgba(168,85,247,0.6) 60%, transparent 80%)",
+              boxShadow: "inset -10px -10px 30px rgba(99,102,241,0.3), 0 0 40px rgba(192,38,211,0.4)",
+            }}
+            aria-hidden="true"
+          />
+
+          {/* Code visualization */}
           <motion.div
             animate={{ y: [0, -12, 0] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            style={{ willChange: "transform" }}
-            className="relative w-full max-w-sm sm:max-w-md lg:max-w-none rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 p-0.5 backdrop-blur-2xl shadow-[0_0_60px_rgba(59,130,246,0.15)] overflow-hidden"
+            className="relative w-full max-w-sm sm:max-w-md lg:max-w-none rounded-2xl sm:rounded-3xl p-0.5 backdrop-blur-2xl overflow-hidden"
+            style={{
+              willChange: "transform",
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "linear-gradient(135deg, rgba(20,18,32,0.8), rgba(14,13,22,0.9))",
+              boxShadow: "0 0 60px rgba(168,85,247,0.15), 0 0 120px rgba(192,38,211,0.08)",
+            }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10 blur-2xl" />
-
-            <div className="relative rounded-[calc(1.5rem-2px)] sm:rounded-[calc(1.875rem-2px)] overflow-hidden bg-[#0a0e1f]">
+            <div
+              className="rounded-2xl sm:rounded-3xl overflow-hidden"
+              style={{ backgroundColor: "#0D0B18" }}
+            >
               {/* Title bar */}
-              <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-zinc-800/50 to-zinc-700/30 border-b border-white/5">
+              <div
+                className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3"
+                style={{
+                  background: "linear-gradient(90deg, rgba(30,27,46,0.6), rgba(20,18,32,0.4))",
+                  borderBottom: "1px solid rgba(255,255,255,0.05)",
+                }}
+              >
                 <div className="flex gap-1.5">
-                  {["bg-red-500", "bg-amber-500", "bg-emerald-500"].map((c) => (
-                    <div key={c} className={`h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full ${c}`} />
+                  {["#ef4444", "#f59e0b", "#22c55e"].map((c) => (
+                    <div
+                      key={c}
+                      className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full"
+                      style={{ backgroundColor: c }}
+                    />
                   ))}
                 </div>
-                <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-zinc-400 font-bold">
+                <span
+                  className="text-[9px] sm:text-[10px] uppercase tracking-widest font-bold"
+                  style={{ color: "#8D8A9C" }}
+                >
                   Gemini 2.5 · D2P Review
                 </span>
               </div>
 
               {/* Code body */}
               <div className="p-4 sm:p-6 font-mono text-xs sm:text-sm space-y-2.5 sm:space-y-3">
-                <div className="text-zinc-500 flex gap-3 sm:gap-4">
+                <div className="flex gap-3 sm:gap-4" style={{ color: "#4B4866" }}>
                   <span>1</span>
                   <span>
-                    <span className="text-blue-400">const</span> review ={" "}
-                    <span className="text-yellow-400">await</span> D2P.analyze();
+                    <span style={{ color: "#8B5CF6" }}>const</span> review ={" "}
+                    <span style={{ color: "#22D3A6" }}>await</span>{" "}
+                    <span style={{ color: "#F8F7FA" }}>D2P.analyze();</span>
                   </span>
                 </div>
-                <div className="bg-red-500/10 text-red-400 px-2.5 sm:px-3 py-1 rounded flex gap-3 sm:gap-4 border border-red-500/20">
-                  <span className="text-red-300">−</span>
+                <div
+                  className="px-2.5 sm:px-3 py-1 rounded flex gap-3 sm:gap-4"
+                  style={{
+                    backgroundColor: "rgba(239,68,68,0.08)",
+                    border: "1px solid rgba(239,68,68,0.2)",
+                    color: "#F87171",
+                  }}
+                >
+                  <span style={{ color: "#FCA5A5" }}>−</span>
                   <span>if (error) throw new Error()</span>
                 </div>
-                <div className="bg-green-500/10 text-green-400 px-2.5 sm:px-3 py-1 rounded flex gap-3 sm:gap-4 border border-green-500/20">
-                  <span className="text-green-300">+</span>
+                <div
+                  className="px-2.5 sm:px-3 py-1 rounded flex gap-3 sm:gap-4"
+                  style={{
+                    backgroundColor: "rgba(34,211,166,0.08)",
+                    border: "1px solid rgba(34,211,166,0.2)",
+                    color: "#6EE7B7",
+                  }}
+                >
+                  <span style={{ color: "#6EE7B7" }}>+</span>
                   <span>if (error) return fix()</span>
                 </div>
-                <div className="text-zinc-500 flex gap-3 sm:gap-4">
+                <div className="flex gap-3 sm:gap-4" style={{ color: "#4B4866" }}>
                   <span>4</span>
                   <span>
-                    <span className="text-purple-400">return</span> review.apply();
+                    <span style={{ color: "#C084FC" }}>return</span>{" "}
+                    <span style={{ color: "#F8F7FA" }}>review.apply();</span>
                   </span>
                 </div>
               </div>
 
               {/* AI suggestion strip */}
-              <div className="border-t border-white/5 bg-gradient-to-r from-blue-600/10 to-purple-600/10 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-blue-300">
+              <div
+                className="px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between"
+                style={{
+                  borderTop: "1px solid rgba(255,255,255,0.05)",
+                  background: "linear-gradient(90deg, rgba(139,92,246,0.12), rgba(192,38,211,0.08))",
+                }}
+              >
+                <div className="flex items-center gap-2" style={{ color: "#C084FC" }}>
                   <Sparkles size={13} />
                   <span className="text-[10px] sm:text-xs font-semibold">AI Fix Ready — error handling optimized</span>
                 </div>
-                <button className="rounded-md bg-blue-600 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-blue-500 transition-colors">
+                <button
+                  className="rounded-md px-2.5 py-1 text-[10px] font-bold text-[#0B0A12] btn-gradient-teal"
+                >
                   Apply
                 </button>
               </div>
             </div>
           </motion.div>
 
-          {/* Floating badge — only on sm+ so it doesn't overlap on tiny screens */}
+          {/* Floating badge */}
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-            style={{ willChange: "transform" }}
-            className="absolute -bottom-4 -right-2 sm:-bottom-8 sm:-right-8 hidden sm:block p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-600/20 to-blue-600/10 backdrop-blur-xl shadow-2xl shadow-blue-600/20 max-w-[180px] sm:max-w-[220px]"
+            className="absolute -bottom-4 -right-2 sm:-bottom-8 sm:-right-8 hidden sm:block p-3 sm:p-4 rounded-xl sm:rounded-2xl backdrop-blur-xl shadow-2xl max-w-[180px] sm:max-w-[220px]"
+            style={{
+              willChange: "transform",
+              border: "1px solid rgba(168,85,247,0.4)",
+              background: "linear-gradient(135deg, rgba(139,92,246,0.2), rgba(168,85,247,0.1))",
+              boxShadow: "0 8px 40px rgba(168,85,247,0.2)",
+            }}
           >
-            <div className="flex items-center gap-2 text-blue-300 mb-1.5">
+            <div className="flex items-center gap-2 mb-1.5" style={{ color: "#C084FC" }}>
               <Sparkles size={13} />
               <span className="text-[9px] sm:text-[10px] font-bold uppercase">CI Fixed</span>
             </div>
-            <p className="text-[10px] sm:text-xs text-zinc-300 leading-relaxed">
-              Workflow failure diagnosed & patch applied automatically.
+            <p className="text-[10px] sm:text-xs leading-relaxed" style={{ color: "#8D8A9C" }}>
+              Workflow failure diagnosed &amp; patch applied automatically.
             </p>
           </motion.div>
         </motion.div>

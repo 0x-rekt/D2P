@@ -10,7 +10,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@google/genai": "^1.45.0",
+    "@google/genai": "^1.52.0",
     "@prisma/client": "^7.4.2",
     "adm-zip": "^0.5.17",
     "axios": "^1.13.6",
