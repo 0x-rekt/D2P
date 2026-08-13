@@ -1,3 +1,5 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { GitBranch, Clock, ExternalLink } from "lucide-react";
 import Link from "next/link";
